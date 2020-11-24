@@ -73,12 +73,11 @@ void mGPIO_Init(void)
 
 void mADC1_Init(void)
 {
-    
     // Todo: ramp down ADC clock. 
     g_RefOBjectAtSensor = 0; 
     
     // == > Config ADC (Analog input ADC1 / PORTF1)
-    ADCSRA |= _BV(ADEN);        // ==> Enable ADC
+    ADCSRA |= _BV(ADEN);  // ==> Enable ADC
     
     // == > ADC Multiplexer Selection Register
     //            ADLAR: Left adjust the ADC result in the register = 0. 
@@ -93,7 +92,7 @@ void mADC1_Init(void)
 	// == > Wait for first ADC conversion to completes
     while ((ADCSRA & _BV(ADIF)) == 0x00);
 	
-    ADCSRA |= _BV(ADIE);	// ==> EN ADC interrupt
+    ADCSRA |= _BV(ADIE);	// ==> Clear Flag in Interrupt
 }
 
 
