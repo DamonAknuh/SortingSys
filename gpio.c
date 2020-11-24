@@ -50,7 +50,7 @@ void mGPIO_Init(void)
     EICRA |= _BV(ISC01);
     // == > Set INT1 (PORT D.1) to be interrupt on falling edge
     EICRA |= _BV(ISC11);
-    // == > Set INT2 (PORT D.2) to be interrupt on any edge change. 
+    // == > Set INT2 (PORT D.2) to be interrupt on any edge. 
     EICRA |= _BV(ISC20);
     // == > Set INT3 (PORT D.3) to be interrupt on falling edge
     EICRA |= _BV(ISC31);

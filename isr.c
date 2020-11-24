@@ -16,6 +16,11 @@
 #include "linkedlist_api.h"
 #include "fsm_api.h"
 
+
+volatile uint16_t g_ADCSample;
+volatile uint16_t g_ADCMinResult;
+volatile uint32_t g_ADCCounter; 
+
 void Project_DisplayStats()
 {
     cli();
@@ -48,22 +53,23 @@ ISR(INT1_vect)
 // == > OR sensor: Optical sensor for detecting object at ADC conversion (Active Hi)
 ISR(INT2_vect)
 {
-	TRIGGER_STATE(SAMPLING_STATE);
-    if ((PIND & OR_SENSOR_PIN)== OR_SENSOR_PIN) // == > if sensor triggered : Object sighted. 
+    if ((PIND & OR_SENSOR_PIN)== OR_SENSOR_PIN && !g_ADCCounter) // == > if sensor triggered : Object sighted, and have processed Past object
     {
-		PORTC = 0xF0;
+        PORTC = 0xF0;
 		mTim1_DelayMs(100);
 		
 		// == > Set Global bool for object at sensor to be true
         g_RefOBjectAtSensor = 1;
         
-        // == > Reset the ADC Sampling 
+        // == > Reset the ADC Sampling variables
         g_ADCSample = 0xFFFF; 
+        g_ADCCounter= 0;
 		
 		// == > Trigger ADC Sampling.
 		ADCSRA |= _BV(ADSC);
+
     }
-    else  // == > Sensor not asserted: Object passed. 
+    else if(g_ADCCounter >=  MIN_ADC_SAMPLES) // == > Sensor not asserted: Object passed. 
     {
 		PORTC = 0x0F;
 		mTim1_DelayMs(100);
@@ -74,10 +80,26 @@ ISR(INT2_vect)
         // Save the old ADC result
         g_ADCMinResult = g_ADCSample;
 
+        // == > Clear Counter
+        g_ADCCounter = 0;
+
         // == > ADC Sampling Complete: State = CLASS_STATE
         TRIGGER_STATE(CLASS_STATE);
     }
+    else    // == > Bad Reading: Not enough samples to classify object. 
+    {
+        // == > Clear Counter
+        g_ADCCounter = 0;
+
+        // == > Set Global bool for object at sensor to be false
+        g_RefOBjectAtSensor = 0;
+
+        // == > Change Interrupt to be only on falling edge. 
+        EICRA ^= _BV(ISC20); 
+    }
+    
 }
+
 
 // == > EX sensor: Optical sensor positioned at end of the conveyor belt (Active Low)
 ISR(INT3_vect)
@@ -111,6 +133,8 @@ ISR(ADC_vect)
 	g_ADCSample = MIN(g_ADCSample, result);
 	
 	PORTC = ADCLow;
+    
+    g_ADCCounter++;
 	
 	if (g_RefOBjectAtSensor)
 	{

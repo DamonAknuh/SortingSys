@@ -43,6 +43,11 @@ void InitState()
 
     // todo: see if clearQ imp is good for null Qs
     ClearQueue();
+
+    // == > Initialize Global Variables
+    g_RefOBjectAtSensor = 0; 
+    g_ADCSample = 0xFFFF;
+    g_ADCCounter = 0; 
 }
 
 void ClassifyState()

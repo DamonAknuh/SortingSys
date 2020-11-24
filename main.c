@@ -37,8 +37,7 @@
 
 volatile uint8_t  g_CurrentState;
 
-volatile uint16_t g_ADCSample;
-volatile uint16_t g_ADCMinResult;
+
 
 /**********************************************************************
 ** _  _ ____ _ _  _

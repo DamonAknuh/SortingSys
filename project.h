@@ -55,11 +55,16 @@
 #define BLACK_TH_MIN			(956)
 #define BLACK_TH_MAX			(1026)
 
+#define REL_SENSOR_MAX          (BLACK_TH_MAX)
+#define MIN_ADC_SAMPLES         (50)
+
 extern volatile uint8_t  g_HomingFlag;
 
 extern volatile uint8_t  g_RefOBjectAtSensor;
+
 extern volatile uint16_t g_ADCMinResult;
 extern volatile uint16_t g_ADCSample;
+extern volatile uint32_t g_ADCCounter; 
 
 
 #define STEEL_TYPE              (00) 
