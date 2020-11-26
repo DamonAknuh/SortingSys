@@ -99,8 +99,6 @@ int main(void)
             PROCESS_STATE(POS_TRAY_HARD);
 
             PositionTrayState();
-            
-            TRIGGER_STATE(IDLE_STATE);
         }
 
         if (shadowState & CLASS_STATE)

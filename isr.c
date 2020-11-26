@@ -46,13 +46,12 @@ ISR(INT1_vect)
 {
     // == > Trigger the stepper motor to stop when homed.  
     g_HomingFlag = 1; 
-
 }
 
 // == > OR sensor: Optical sensor for detecting object at ADC conversion (Active Hi)
 ISR(INT2_vect)
 {
-    if ((PIND & OR_SENSOR_PIN)== OR_SENSOR_PIN && !g_ADCCounter) // == > if sensor triggered : Object sighted, and have processed Past object
+    if ((PIND & OR_SENSOR_PIN)== OR_SENSOR_PIN && !g_ADCCounter) // == > if sensor triggered : Object sighted, and not currently processing. 
     {
         PORTC = 0xF0;
         mTim1_DelayMs(100);
@@ -66,7 +65,6 @@ ISR(INT2_vect)
         
         // == > Trigger ADC Sampling.
         ADCSRA |= _BV(ADSC);
-
     }
     else if(g_ADCCounter >=  MIN_ADC_SAMPLES) // == > Sensor not asserted: Object passed. 
     {

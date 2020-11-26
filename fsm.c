@@ -24,9 +24,9 @@
 **
 ***********************************************************************/
 
-static uint8_t s_PrevQuadrant  = 0; 
+static uint8_t s_PrevQuadrant;
 
-const uint8_t  s_trayTransitionTable[NUMBER_OF_OBJ_TYPES][NUMBER_OF_OBJ_TYPES] =
+const int8_t  s_trayTransitionTable[NUMBER_OF_OBJ_TYPES][NUMBER_OF_OBJ_TYPES] =
 { 
 // Initial -->  0       1        2       3
 /*  0*/       { 0,      1,       2,     -1},
@@ -99,7 +99,6 @@ void ClassifyState()
     PORTC = CLASS_STATE;
     mTim1_DelayMs(1000);
     PORTC = g_ADCMinResult;
-    OCR0A = g_ADCMinResult >> 2;
     mTim1_DelayMs(2000);
 #endif // ENABLE_DEBUG_BUILD
 
@@ -122,13 +121,11 @@ void ClassifyState()
         {
             currentNode->data.type = STEEL_TYPE;
             s_ObjectTracking[STEEL_TYPE]++;
-
         }
         else if(BLACK_TH_MIN <= shadowADCResult && BLACK_TH_MAX >= shadowADCResult)
         {
             currentNode->data.type = BLACK_TYPE;
             s_ObjectTracking[BLACK_TYPE]++;
-
         }
         else if(WHITE_TH_MIN <= shadowADCResult && WHITE_TH_MAX >= shadowADCResult)
         {
@@ -180,9 +177,9 @@ void PositionTrayState()
     mTim1_DelayMs(100);
 #endif // ENABLE_DEBUG_BUILD
 
-    pNode_t  headNode;
-    int16_t  quadrantsToMove;
-    uint16_t nextQuadrant; 
+    pNode_t headNode;
+    int8_t  quadrantsToMove;
+    uint8_t nextQuadrant; 
 
     // Turn Off DC Motor (todo brake to high VCC or turn off bottom bits )
     PORTB =  DC_MOTOR_OFF;
@@ -193,10 +190,8 @@ void PositionTrayState()
     // == > Check if node is NULL. 
     if (headNode != NULL)
     {
-        // == > Increment the stage of the node. 
-        headNode->data.stage = 0b10;
         // TYPE: STEEL = 00, ALUM = 01, WHITE = 10, BLACK = 11s
-        nextQuadrant = headNode->data.type + 1;
+        nextQuadrant = headNode->data.type;
 
         // == > Finished Processing Node: free it. 
         free(headNode);
@@ -205,19 +200,30 @@ void PositionTrayState()
         if (nextQuadrant != s_PrevQuadrant)
         {
             // == > Grab the tray motor from the constant table above. 
-            quadrantsToMove =  s_trayTransitionTable[s_PrevQuadrant][nextQuadrant];
-        
+            quadrantsToMove = s_trayTransitionTable[s_PrevQuadrant][nextQuadrant];
+
+            PORTC |= abs(quadrantsToMove); 
+
             // == > Move stepper motor.
-            StepMotorMove((quadrantsToMove > 0), abs(quadrantsToMove)); 
+            STMotorMove((quadrantsToMove > 0), abs(quadrantsToMove)); 
 
             s_PrevQuadrant =  nextQuadrant; 
         }
+
+        mTim1_DelayMs(1000);
+
+        TRIGGER_STATE(IDLE_STATE);
     }
     // == > IF node is NULL, and ramp button has been pressed, trigger system end state. 
     else if (EVAL_STATE(SYSTEM_RAMP_STATE))
     {
         TRIGGER_STATE(SYSTEM_END_STATE);
     }
+    else
+    {
+        TRIGGER_STATE(IDLE_STATE);
+    }
+    
 }
 
 /******************************************************************************************
@@ -234,12 +240,11 @@ void SystemEndState()
     mTim1_DelayMs(100);
 #endif // ENABLE_DEBUG_BUILD
 
+    // Turn Off DC Motor (todo brake to high VCC or turn off bottom bits )
+    
+    PORTB =  DC_MOTOR_OFF;
+
     cli();
 
-    // TODO MATT. 
-    // DISPLAY STATS
-
     while(1);
-
-
 }

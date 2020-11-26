@@ -27,8 +27,15 @@
 #define ENABLE_SMALL_STEPPER    (1)
 
 #define DISPLAY_DELAY_MS        (250)
+
+#if ENABLE_SMALL_STEPPER
+#define MOTOR_START_DELAY_MS    (35)
+#define MOTOR_END_DELAY_MS      (20)
+#else // !ENABLE_SMALL_STEPPER
 #define MOTOR_START_DELAY_MS    (20)
 #define MOTOR_END_DELAY_MS      (5)
+#endif // !ENABLE_SMALL_STEPPER
+
 #define DEBOUNCE_DELAY_MS       (150)
 
 #define KILL_SWITCH_BIT         (0b1)
@@ -45,26 +52,27 @@
 #define ST_MOTOR_CCW            (1)
 #define ST_MOTOR_CW             (!ST_MOTOR_CCW)
 
+#define ALUM_TYPE               (1) 
 #define ALUM_TH_MIN             (0)
 #define ALUM_TH_MAX             (255)
 
+#define STEEL_TYPE              (3)  
 #define STEEL_TH_MIN            (400)
 #define STEEL_TH_MAX            (700)
 
+#define WHITE_TYPE              (2) 
 #define WHITE_TH_MIN            (900)
 #define WHITE_TH_MAX            (950)
 
+#define BLACK_TYPE              (0) 
 #define BLACK_TH_MIN            (956)
 #define BLACK_TH_MAX            (1026)
+
+#define NUMBER_OF_OBJ_TYPES		(4)
 
 #define REL_SENSOR_MAX          (BLACK_TH_MAX)
 #define MIN_ADC_SAMPLES         (50)
 
-#define BLACK_TYPE              (0) 
-#define ALUM_TYPE               (1) 
-#define WHITE_TYPE              (2) 
-#define STEEL_TYPE              (3)  
-#define NUMBER_OF_OBJ_TYPES		(4)
 
 #define MIN(x, y)                      (y < x ? y : x)
 #define COMPILE_VERIFY(EXPR, LINE)    typedef char ERROR_ ## LINE [EXPR ? 1 : -1]
@@ -100,7 +108,7 @@ void mTim1_DelayMs(uint32_t count);
 void mGPIO_Init(void);
 void mADC1_Init(void);
 
-void StepMotorMove(bool dirCW, uint8_t quadrants);
+void STMotorMove(bool dirCW, uint8_t quadrants);
 
 void mTray_Init(void);
 
