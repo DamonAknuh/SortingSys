@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+*.elf
+*.hex
+*.lss
+*.map
+*.eep
+*.srec
