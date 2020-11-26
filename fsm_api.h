@@ -21,9 +21,11 @@ typedef enum
     INIT_STATE          = 0b00000001,
     IDLE_STATE          = 0b00000010,
     NEW_OBJ_STATE       = 0b00000100,
+    SYSTEM_END_STATE    = 0b00001000,
+    SYSTEM_RAMP_STATE   = 0b00010000,
+    POS_TRAY_HARD       = 0b00100000,
 
     CLASS_STATE         = 0b10000000,
-    POS_TRAY_HARD       = 0b00100000,
 } systemStates_e;
 
 
@@ -31,6 +33,7 @@ extern volatile uint8_t  g_CurrentState;
 
 #define TRIGGER_STATE(STATE) (g_CurrentState |= STATE)
 #define PROCESS_STATE(STATE) (g_CurrentState &= ~STATE)
+#define EVAL_STATE(STATE)    (g_CurrentState & STATE)
 
 /**********************************************************************
 ** ____ _  _ _  _ ____ ___ _ ____ _  _ ____
@@ -44,7 +47,6 @@ void InitState();
 void PositionTrayState();
 void NewObjState();
 void ClassifyState();
-
-
+void SystemEndState();
 
 #endif /* FSM_H_ */

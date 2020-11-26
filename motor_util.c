@@ -14,17 +14,23 @@
 #include "project.h"
 #include "linkedlist_api.h"
 
+/**********************************************************************
+** ____ _    ____ ___  ____ _    ____
+** | __ |    |  | |__] |__| |    [__
+** |__] |___ |__| |__] |  | |___ ___]
+**
+***********************************************************************/
+
 static uint8_t  s_CurrentMotorStep;
 
 // ==> g_HomingFlag = True when tray is homed.
 //                  else = false. 
 volatile uint8_t  g_HomingFlag; 
 
-
 #if ENABLE_SMALL_STEPPER
 
 // Small Stepper step table
-const uint8_t motorStepTable_g[] = 
+const uint8_t s_motorStepTable[] = 
 {
     0b110000, 
     0b101000,
@@ -41,7 +47,7 @@ const uint8_t motorStepTable_g[] =
 #elif !ENABLE_SMALL_STEPPER 
 
 // Large Stepper step table
-const uint8_t motorStepTableFWD_g[] =
+const uint8_t s_motorStepTable[] =
 {
     0b110000,
     0b000110,
@@ -58,9 +64,16 @@ const uint8_t motorStepTableFWD_g[] =
 
 #endif // ENABLE_LARGE_STEPPER
 
-#define SIZEOF_MOTOR_TABLE    (sizeof(motorStepTable_g)/sizeof(motorStepTable_g[0])) 
+#define SIZEOF_MOTOR_TABLE    (sizeof(s_motorStepTable)/sizeof(s_motorStepTable[0])) 
 
-void mStepMotor(bool dirCW, uint8_t quadrants)
+/**********************************************************************
+** ____ _  _ _  _ ____ ___ _ ____ _  _ ____
+** |___ |  | |\ | |     |  | |  | |\ | [__
+** |    |__| | \| |___  |  | |__| | \| ___]
+**
+***********************************************************************/
+
+void StepMotorMove(bool dirCW, uint8_t quadrants)
 {
     uint32_t i;
     uint32_t steps = quadrants * MOTOR_QUARTER_STEPS;
@@ -73,7 +86,7 @@ void mStepMotor(bool dirCW, uint8_t quadrants)
         for (i = 0; i < steps; i++)
         {
             // the steps in the step table (1,2,3,4,1,2...) to turn motor CW
-            PORTA = motorStepTable_g[(s_CurrentMotorStep + i) % SIZEOF_MOTOR_TABLE];
+            PORTA = s_motorStepTable[(s_CurrentMotorStep + i) % SIZEOF_MOTOR_TABLE];
 
             // == > Trapezoidal Acceleration Profiling. 
             if (i < MOTOR_RAMP_STEPS * quadrants)
@@ -93,7 +106,6 @@ void mStepMotor(bool dirCW, uint8_t quadrants)
         s_CurrentMotorStep = (s_CurrentMotorStep + i - 1) % SIZEOF_MOTOR_TABLE;
 
     }
-
     else if (!dirCW)
     {
         // == > Decrement Current Step to next step. 
@@ -102,7 +114,7 @@ void mStepMotor(bool dirCW, uint8_t quadrants)
         for (i = 0; i < steps; i++)
         {
             // Reverse the steps in the step table (4,3,2,1,4,3...) to turn motor CCW
-            PORTA = motorStepTable_g[3 -  ((s_CurrentMotorStep + i ) % SIZEOF_MOTOR_TABLE)];
+            PORTA = s_motorStepTable[3 -  ((s_CurrentMotorStep + i ) % SIZEOF_MOTOR_TABLE)];
 
             // == > Trapezoidal Acceleration Profiling. 
             if (i < MOTOR_RAMP_STEPS * quadrants)
@@ -133,9 +145,9 @@ void mTray_Init(void)
     for (i = 0; !g_HomingFlag; i++)
     {
         // the steps in the step table (1,2,3,4,1,2...) to turn motor CW
-        PORTA = motorStepTable_g[(s_CurrentMotorStep + i) % SIZEOF_MOTOR_TABLE];
+        PORTA = s_motorStepTable[(s_CurrentMotorStep + i) % SIZEOF_MOTOR_TABLE];
         
-        mTim1_DelayMs(MOTOR_START_DELAY_MS);
+        mTim1_DelayMs(MOTOR_START_DELAY_MS + (ENABLE_SMALL_STEPPER * 20));
     }
 
     s_CurrentMotorStep = (i % 4);

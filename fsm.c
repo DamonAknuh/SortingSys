@@ -17,9 +17,40 @@
 #include "linkedlist_api.h"
 #include "fsm_api.h"
 
-uint8_t s_PrevQuadrant  = 1; 
+/**********************************************************************
+** ____ _    ____ ___  ____ _    ____
+** | __ |    |  | |__] |__| |    [__
+** |__] |___ |__| |__] |  | |___ ___]
+**
+***********************************************************************/
+
+static uint8_t s_PrevQuadrant  = 0; 
+
+const uint8_t  s_trayTransitionTable[NUMBER_OF_OBJ_TYPES][NUMBER_OF_OBJ_TYPES] =
+{ 
+// Initial -->  0       1        2       3
+/*  0*/       { 0,      1,       2,     -1},
+/*  1*/       {-1,      0,       1,      2},
+/*  2*/       { 2,     -1,       0,      1},
+/*  3*/       { 1,      2,      -1,      0}
+};
+
+uint8_t s_ObjectTracking[NUMBER_OF_OBJ_TYPES];
+
+/**********************************************************************
+**  _______ _______ _______ _______ _______ _______
+**  |______    |    |_____|    |    |______ |______
+**  ______|    |    |     |    |    |______ ______|
+** 
+***********************************************************************/
 
 
+/**********************************************************************
+** _ ___  _    ____     ____ ___ ____ ___ ____ 
+** | |  \ |    |___     [__   |  |__|  |  |___ 
+** | |__/ |___ |___ ___ ___]  |  |  |  |  |___ 
+**                                          
+***********************************************************************/
 void IdleState()
 {
 #if ENABLE_DEBUG_BUILD
@@ -46,44 +77,77 @@ void InitState()
 
     // == > Initialize Global Variables
     g_RefOBjectAtSensor = 0; 
-    g_ADCSample = 0xFFFF;
-    g_ADCCounter = 0; 
+    g_ADCSample         = 0xFFFF;
+    g_ADCCounter        = 0; 
+
+    s_ObjectTracking[BLACK_TYPE] =0;
+    s_ObjectTracking[ALUM_TYPE]  =0;
+    s_ObjectTracking[WHITE_TYPE] =0;
+    s_ObjectTracking[STEEL_TYPE] =0;
 }
+
+/**********************************************************************
+**  ___ _    ____ ____ ____     ____ ___ ____ ___ ____ 
+** |    |    |__| [__  [__      [__   |  |__|  |  |___ 
+** |___ |___ |  | ___] ___] ___ ___]  |  |  |  |  |___ 
+** 
+***********************************************************************/
 
 void ClassifyState()
 {
 #if ENABLE_DEBUG_BUILD
     PORTC = CLASS_STATE;
     mTim1_DelayMs(1000);
-	PORTC = g_ADCMinResult;
-	mTim1_DelayMs(2000);
+    PORTC = g_ADCMinResult;
+    OCR0A = g_ADCMinResult >> 2;
+    mTim1_DelayMs(2000);
 #endif // ENABLE_DEBUG_BUILD
 
     pNode_t currentNode;
     uint16_t shadowADCResult = g_ADCMinResult;
 
+    // == > Dequeue the current node from the LL. 
     DequeueCurrentNode(&currentNode);
-   
-    if ( ALUM_TH_MAX >= shadowADCResult)
-    {
-        currentNode->data.type = 0b01;
-    }
-    else if(STEEL_TH_MIN <= shadowADCResult && STEEL_TH_MAX >= shadowADCResult)
-    {
-        currentNode->data.type = 0b00;
-    }
-    else if(BLACK_TH_MIN <= shadowADCResult && BLACK_TH_MAX >= shadowADCResult)
-    {
-        currentNode->data.type = 0b11;
-    }
-    else if(WHITE_TH_MIN <= shadowADCResult && WHITE_TH_MAX >= shadowADCResult)
-    {
-        currentNode->data.type = 0b10;
-    }
 
-    currentNode->data.stage = 0b01;
+    // == > Check if any nodes too dequeue from LL
+    if (NULL != currentNode)
+    {
+        // == > Classify the objects based on threshold values. increment the tracking. 
+        if ( ALUM_TH_MAX >= shadowADCResult)
+        {
+            currentNode->data.type = ALUM_TYPE;
+            s_ObjectTracking[ALUM_TYPE]++;
+        }
+        else if(STEEL_TH_MIN <= shadowADCResult && STEEL_TH_MAX >= shadowADCResult)
+        {
+            currentNode->data.type = STEEL_TYPE;
+            s_ObjectTracking[STEEL_TYPE]++;
+
+        }
+        else if(BLACK_TH_MIN <= shadowADCResult && BLACK_TH_MAX >= shadowADCResult)
+        {
+            currentNode->data.type = BLACK_TYPE;
+            s_ObjectTracking[BLACK_TYPE]++;
+
+        }
+        else if(WHITE_TH_MIN <= shadowADCResult && WHITE_TH_MAX >= shadowADCResult)
+        {
+            currentNode->data.type = WHITE_TYPE;
+            s_ObjectTracking[WHITE_TYPE]++;
+        }
+
+        // == > Increment the stage of the node. 
+        currentNode->data.stage = 0b01;
+    }
 
 }
+
+/**********************************************************************
+** _  _ ____ _ _ _     ____ ___   _     ____ ___ ____ ___ ____ 
+** |\ | |___ | | |     |  | |__]  |     [__   |  |__|  |  |___ 
+** | \| |___ |_|_| ___ |__| |__] _| ___ ___]  |  |  |  |  |___ 
+**                                                             
+***********************************************************************/
 
 void NewObjState()
 {
@@ -91,16 +155,23 @@ void NewObjState()
     PORTC = NEW_OBJ_STATE;
     mTim1_DelayMs(100);
 #endif // ENABLE_DEBUG_BUILD
+
     pNode_t newNode; 
 
+    // == > Initialze the node
     InitNode(&newNode);
 
+    // == > Enqueue the node onto the list
     EnqueueNode(&newNode);
 }
 
-    // link stores classification. look at structure in link list .h file. 
-    // need to track tray pos over movement.
-    // need to call void mStepMotor(bool dirCW, uint32_t quadrants)
+
+/**********************************************************************
+** ___  ____ ____     ___ ____ ____ _   _     _  _ ____ ____ ___  
+** |__] |  | [__       |  |__/ |__|  \_/      |__| |__| |__/ |  \ 
+** |    |__| ___] ___  |  |  \ |  |   |   ___ |  | |  | |  \ |__/ 
+**                                                             
+***********************************************************************/
 
 void PositionTrayState()
 {
@@ -109,59 +180,66 @@ void PositionTrayState()
     mTim1_DelayMs(100);
 #endif // ENABLE_DEBUG_BUILD
 
-#if !ENABLE_DEBUG_BUILD
-    pNode_t headNode;
-    uint8_t classification; 
+    pNode_t  headNode;
+    int16_t  quadrantsToMove;
+    uint16_t nextQuadrant; 
 
     // Turn Off DC Motor (todo brake to high VCC or turn off bottom bits )
     PORTB =  DC_MOTOR_OFF;
 
-    // Logic to grab LL value from LL
+    // == > Dequeue the head node from the LinkedList. 
     DequeueHeadNode(&headNode);
 
-    headNode->data.stage = 0b10;
+    // == > Check if node is NULL. 
+    if (headNode != NULL)
+    {
+        // == > Increment the stage of the node. 
+        headNode->data.stage = 0b10;
+        // TYPE: STEEL = 00, ALUM = 01, WHITE = 10, BLACK = 11s
+        nextQuadrant = headNode->data.type + 1;
 
-    // TYPE: STEEL = 00, ALUM = 01, WHITE = 10, BLACK = 11s
-    type = headNode->data.type;
+        // == > Finished Processing Node: free it. 
+        free(headNode);
 
-    uint8_t next_quatrant; 
-
-    
-    if (type == STEEL_TYPE){ // 0x00 
-
-        next_quatrant =  1; 
-    }
-    else if (type == ALUM_TYPE){  //0x01 
+        // == > if not already on quadrant need to move stepper. 
+        if (nextQuadrant != s_PrevQuadrant)
+        {
+            // == > Grab the tray motor from the constant table above. 
+            quadrantsToMove =  s_trayTransitionTable[s_PrevQuadrant][nextQuadrant];
         
-        next_quatrant =  2;    
+            // == > Move stepper motor.
+            StepMotorMove((quadrantsToMove > 0), abs(quadrantsToMove)); 
+
+            s_PrevQuadrant =  nextQuadrant; 
+        }
     }
-    else if (type == WHITE_TYPE ){  //0x10 
-
-        next_quatrant =  3; 
+    // == > IF node is NULL, and ramp button has been pressed, trigger system end state. 
+    else if (EVAL_STATE(SYSTEM_RAMP_STATE))
+    {
+        TRIGGER_STATE(SYSTEM_END_STATE);
     }
-    else if (type == BLACK_TYPE ){  //0x11
+}
 
-        next_quatrant =  4;         
-    }
+/******************************************************************************************
+** ____ _   _ ____ ___ ____ _  _     ____ _  _ ___      ____ ___ ____ ___ ____ 
+** [__   \_/  [__   |  |___ |\/|     |___ |\ | |  \     [__   |  |__|  |  |___ 
+** ___]   |   ___]  |  |___ |  | ___ |___ | \| |__/ ___ ___]  |  |  |  |  |___ 
+**                                                                          
+******************************************************************************************/
 
-    bool clockwise = 1, counter_CW = 0 ; 
+void SystemEndState()
+{
+#if ENABLE_DEBUG_BUILD
+    PORTC = SYSTEM_END_STATE;
+    mTim1_DelayMs(100);
+#endif // ENABLE_DEBUG_BUILD
 
-    
-    if (( (next_quadrant  - s_PrevQuadrant)  % 3) < 2){ 
+    cli();
 
-        mStepMotor(clockwise, next_quadrant); 
+    // TODO MATT. 
+    // DISPLAY STATS
 
-        s_PrevQuadrant =  next_quadrant; 
+    while(1);
 
 
-
-    } 
-    else { 
-
-        mStepMotor(counter_CW, next_quadrant); 
-
-        s_PrevQuadrant =  next_quadrant; 
-
-    }
-#endif //!ENABLE_DEBUG_BUILD
 }

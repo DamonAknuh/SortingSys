@@ -38,7 +38,6 @@
 volatile uint8_t  g_CurrentState;
 
 
-
 /**********************************************************************
 ** _  _ ____ _ _  _
 ** |\/| |__| | |\ |
@@ -90,9 +89,20 @@ int main(void)
     while (1)
     {
         shadowState = g_CurrentState;
+
 #if ENABLE_DEBUG_BUILD
         PORTC = 0;
 #endif // ENABLE_DEBUG_BUILD
+
+        if (shadowState & POS_TRAY_HARD)
+        {
+            PROCESS_STATE(POS_TRAY_HARD);
+
+            PositionTrayState();
+            
+            TRIGGER_STATE(IDLE_STATE);
+        }
+
         if (shadowState & CLASS_STATE)
         {
             // == > Classifying the Object. Deassert the State
@@ -100,23 +110,30 @@ int main(void)
 
             ClassifyState();
         }
-        else if (shadowState & NEW_OBJ_STATE)
+
+
+        if ((shadowState & NEW_OBJ_STATE) && !(shadowState & SYSTEM_RAMP_STATE))
         {
             // == > Processed new object deassert object
             PROCESS_STATE(NEW_OBJ_STATE);
 
             NewObjState();
         }
-        else if (shadowState & POS_TRAY_HARD)
+
+        if (shadowState & SYSTEM_END_STATE)
         {
-            PROCESS_STATE(POS_TRAY_HARD);
-
-            PositionTrayState();
-            
-
-            TRIGGER_STATE(IDLE_STATE);
+            // == > Process and clear all other states
+            PROCESS_STATE(~SYSTEM_END_STATE);
+            SystemEndState();
         }
-        else if (shadowState & INIT_STATE)
+
+        if (shadowState & IDLE_STATE)
+        {
+            PROCESS_STATE(IDLE_STATE);
+
+            IdleState();
+        }
+        if (shadowState & INIT_STATE)
         {
             // == > Initialized System deassert object
             PROCESS_STATE(INIT_STATE);
@@ -125,21 +142,8 @@ int main(void)
 
             TRIGGER_STATE(IDLE_STATE);
         }
-        else if (shadowState & IDLE_STATE)
-        {
-            PROCESS_STATE(IDLE_STATE);
-
-            IdleState();
-        }
     }
 
 }
-
-/**********************************************************************
-** ____ _  _ _  _ ____ ___ _ ____ _  _ ____
-** |___ |  | |\ | |     |  | |  | |\ | [__
-** |    |__| | \| |___  |  | |__| | \| ___]
-**
-***********************************************************************/
 
 

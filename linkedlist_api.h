@@ -20,14 +20,14 @@
 
 typedef union
 {
-	struct
-	{
-		uint8_t type    : 2; // == > TYPE: STEEL = 00, ALUM = 01, WHITE = 10, BLACK = 11s
-		uint8_t resv    : 2; // == > RESERVED
-		uint8_t stage   : 4; // == > Stage, 3 stages, NEW = 00, CLASSED = 01, PROCESSED = 10
-	};
+    struct
+    {
+        uint8_t type    : 2; // == > TYPE: STEEL = 00, ALUM = 01, WHITE = 10, BLACK = 11s
+        uint8_t resv    : 2; // == > RESERVED
+        uint8_t stage   : 4; // == > Stage, 3 stages, NEW = 00, CLASSED = 01, PROCESSED = 10
+    };
 
-	uint8_t    bits;	
+    uint8_t    bits;    
 }nodeData_t;
 
 typedef struct node_s
@@ -45,8 +45,8 @@ typedef struct
 }linkedList_t, * pLinkedList_t;
 
 COMPILE_VERIFY(sizeof(nodeData_t) == 1, nodeData_t);
-COMPILE_VERIFY(sizeof(pNode_t) == 2,	pNode_t);
-COMPILE_VERIFY(sizeof(node_t) == 3,		node_t);
+COMPILE_VERIFY(sizeof(pNode_t) == 2,    pNode_t);
+COMPILE_VERIFY(sizeof(node_t) == 3,     node_t);
 
 /**********************************************************************
 ** ____ _  _ _  _ ____ ___ _ ____ _  _ ____

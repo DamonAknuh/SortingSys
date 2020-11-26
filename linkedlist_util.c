@@ -15,7 +15,22 @@
 
 #define ASSERT(expr) assert(expr);
 
+/**********************************************************************
+** ____ _    ____ ___  ____ _    ____
+** | __ |    |  | |__] |__| |    [__
+** |__] |___ |__| |__] |  | |___ ___]
+**
+***********************************************************************/
+
 static linkedList_t s_LinkedList;
+
+/**********************************************************************
+** ____ _  _ _  _ ____ ___ _ ____ _  _ ____
+** |___ |  | |\ | |     |  | |  | |\ | [__
+** |    |__| | \| |___  |  | |__| | \| ___]
+**
+***********************************************************************/
+
 
 /**************************************************************************************
 * DESC: initializes the linked queue to 'NULL' status
@@ -54,11 +69,13 @@ void EnqueueNode(pNode_t* newNode)
     //==> Ensure that linked list structure is initialized. 
     ASSERT(NULL != newNode);
 
+    // if TAIL is EMPTY
     if (NULL != s_LinkedList.lTail)
     {
         s_LinkedList.lTail->next = (*newNode); 
     }
     
+    // if HEAD is EMPTY
     if (NULL == s_LinkedList.lHead)
     {
         s_LinkedList.lHead = (*newNode);
@@ -80,18 +97,19 @@ void EnqueueNode(pNode_t* newNode)
 */
 void DequeueHeadNode(pNode_t * result)
 {
-    ASSERT(NULL != s_LinkedList.lTail);
-    
     *result = s_LinkedList.lHead;
     
-    if (NULL != s_LinkedList.lHead->next)
+    if (NULL != s_LinkedList.lHead)
+    {
+        s_LinkedList.lHead = s_LinkedList.lHead->next;
+        s_LinkedList.count--;
+    }
+
+    // Check if New head == NULL
+    if (NULL == s_LinkedList.lHead)
     {
         s_LinkedList.lTail = NULL;
-    }
-    else if(NULL != s_LinkedList.lHead)
-    {
-        s_LinkedList.lHead = s_LinkedList.lHead->next;    
-        s_LinkedList.count--;
+        s_LinkedList.lCurr = NULL;
     }
 
     return;
@@ -103,8 +121,6 @@ void DequeueHeadNode(pNode_t * result)
 */
 void DequeueCurrentNode(pNode_t * result)
 {
-    ASSERT(NULL != s_LinkedList.lTail);
-    
     *result = s_LinkedList.lCurr;
     
     if(NULL != s_LinkedList.lCurr)
@@ -134,20 +150,22 @@ uint8_t GetFirstNodeValue(void)
 */
 /* This clears the queue */
 void ClearQueue(void)
-{   
+{
     pNode_t tempNode;
-    
+
     while (NULL != s_LinkedList.lHead)
     {
         tempNode = s_LinkedList.lHead;
+
         s_LinkedList.lHead = tempNode->next;
+
         free(tempNode);
     }
-    
+
     /* Last but not least set the tail to NULL */
     s_LinkedList.lTail = NULL;
     s_LinkedList.lCurr = NULL;
-    s_LinkedList.count = 0;    
+    s_LinkedList.count = 0;
 }
 
 /**************************************************************************************

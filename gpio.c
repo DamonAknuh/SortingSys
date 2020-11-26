@@ -14,9 +14,13 @@
 
 #include "project.h"
 
-// ______________________________________________________
-//            GPIO FUNCTIONS
-// ______________________________________________________
+/**********************************************************************
+** ____ _  _ _  _ ____ ___ _ ____ _  _ ____
+** |___ |  | |\ | |     |  | |  | |\ | [__
+** |    |__| | \| |___  |  | |__| | \| ___]
+**
+***********************************************************************/
+
 
 void mGPIO_Init(void)
 {
@@ -28,7 +32,7 @@ void mGPIO_Init(void)
     // ==> Set PORT A to be output port. Currently using the top
     //        2 bits as debug LEDS. Rest of the bits used
     //        for stepper motor controll
-    DDRA = 0xCF;
+    DDRA = 0xFF;
     
     // ==>    Set PWM Port PB7 to be output, bottom nibble used for
     //        DC motor controller
@@ -77,7 +81,9 @@ void mADC1_Init(void)
     g_RefOBjectAtSensor = 0; 
     
     // == > Config ADC (Analog input ADC1 / PORTF1)
-    ADCSRA |= _BV(ADEN);  // ==> Enable ADC
+    //          Manual requires ADC to run between 50kHz and 200KHz
+    //          Prescale ADC CLK by / 64 to get 125kHZ
+    ADCSRA |= _BV(ADEN) | _BV(ADPS2) | _BV(ADPS1);  // ==> Enable ADC
     
     // == > ADC Multiplexer Selection Register
     //            ADLAR: Left adjust the ADC result in the register = 0. 
@@ -92,7 +98,7 @@ void mADC1_Init(void)
 	// == > Wait for first ADC conversion to completes
     while ((ADCSRA & _BV(ADIF)) == 0x00);
 	
-    ADCSRA |= _BV(ADIE);	// ==> Clear Flag in Interrupt
+    ADCSRA |= _BV(ADIF);	// ==> Clear Flag in Interrupt
 }
 
 
