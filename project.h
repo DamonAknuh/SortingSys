@@ -24,7 +24,7 @@
 // Configuration switch.
 //        ENABLE_SMALL_STEPPER == true for small stepper values
 //        ENABLE_SMALL_STEPPER == false for lab stepper values
-#define ENABLE_SMALL_STEPPER    (1)
+#define ENABLE_SMALL_STEPPER    (0)
 
 #define DISPLAY_DELAY_MS        (250)
 

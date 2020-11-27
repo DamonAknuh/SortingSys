@@ -48,8 +48,6 @@ void mTim1_DelayMs(uint32_t count)
     // == > Poll the timer to determine when the timer is 1000mS
     while ( index < count )
     {
-        
-        
         // == > Bit 2 set when TCNT1 = OCR1A (Output Compare Register)
         if ( TIFR1 & 0x02 )
         {

@@ -1,11 +1,11 @@
 /*########################################################################
 # MILESTONE:    5
-# PROGRAM:        Final Project
-# PROJECT:        Conveyor Belt System
+# PROGRAM:      Final Project
+# PROJECT:      Conveyor Belt System
 # GROUP:        10
-# NAME 1:        Damon, Hunka,            V00863155
-# NAME 2:        Matt,  MacLeod,            V00868600
-# DESC:            This program is the demo for the DC motor controller
+# NAME 1:       Damon, Hunka,            V00863155
+# NAME 2:       Matt,  MacLeod,            V00868600
+# DESC:         This program is the demo for the DC motor controller
 # DATA
 # REVISED
 ########################################################################*/

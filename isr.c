@@ -97,7 +97,7 @@ ISR(INT2_vect)
         ADCSRA |= _BV(ADIF);   // ==> Clear Flag in Interrupt
 
         // == > Change Interrupt to be only on falling edge. 
-        EICRA ^= _BV(ISC20); 
+        //EICRA ^= _BV(ISC20); 
     }
     
 }
@@ -119,7 +119,7 @@ ISR(INT4_vect)
     mTim1_DelayMs(DEBOUNCE_DELAY_MS);
     if ((PIND & OI_SENSOR_PIN) == 0x00)
     {
-        TRIGGER_STATE(SYSTEM_PAUSE_STATE);
+        TOGGLE_STATE(SYSTEM_PAUSE_STATE);
     }
 }
 
