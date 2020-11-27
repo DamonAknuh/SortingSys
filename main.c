@@ -27,6 +27,7 @@
 #include "project.h"
 #include "linkedlist_api.h"
 #include "fsm_api.h"
+#include "LCD_api.h"
 
 /**********************************************************************
 ** ____ _    ____ ___  ____ _    ____
@@ -76,6 +77,12 @@ int main(void)
     // todo: change to ADC1 10-bit 
     mADC1_Init();
 
+    // == > Initailize the LCD for the project
+    mLCD_Init(LS_BLINK | LS_ULINE);
+
+    //Clear the screen
+    LCDClear();
+
     // == > Set Current State to INIT STATE for 
     g_CurrentState = INIT_STATE;
 
@@ -90,12 +97,9 @@ int main(void)
     {
         shadowState = g_CurrentState;
 
-#if ENABLE_DEBUG_BUILD
-        PORTC = 0;
-#endif // ENABLE_DEBUG_BUILD
-
         if (shadowState & POS_TRAY_HARD)
         {
+            // == > Positioning the object. Deassert the State
             PROCESS_STATE(POS_TRAY_HARD);
 
             PositionTrayState();
@@ -118,11 +122,13 @@ int main(void)
             NewObjState();
         }
 
-        if (shadowState & SYSTEM_END_STATE)
+        if (shadowState & SYSTEM_PAUSE_STATE)
         {
             // == > Process and clear all other states
-            PROCESS_STATE(~SYSTEM_END_STATE);
+            PROCESS_STATE(~SYSTEM_PAUSE_STATE);
             SystemEndState();
+
+            TRIGGER_STATE(IDLE_STATE);
         }
 
         if (shadowState & IDLE_STATE)

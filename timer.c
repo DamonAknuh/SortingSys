@@ -23,7 +23,6 @@
 **
 ***********************************************************************/
 
-
 void mTim1_DelayMs(uint32_t count)
 {
     uint32_t index = 0;
@@ -60,6 +59,24 @@ void mTim1_DelayMs(uint32_t count)
     }
 }
 
+
+// 1 us timer for LCD 
+
+/* f = 16MHz Systtem clock/ 2 ( prescaler) 
+    T = 1/ f =  125 ns * 8 = 1 us 
+
+*/
+void mTim1_DelayUs(double count)
+{
+    uint32_t index = 0;
+    
+    while ( index < (8 * count))
+    {
+        index++;
+    }
+}
+
+
 void mTim1_Init()
 {
     // == > Set pre-scalar to 8 in B timer control register
@@ -87,4 +104,6 @@ void mTim0PWM_Init()
     // Set the duty cycle to  %
     OCR0A  = 0x7F;
 }
+
+
 

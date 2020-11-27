@@ -38,7 +38,12 @@ volatile uint8_t g_RefOBjectAtSensor;
 // == > OI sensor: Optical sensor for first object detection. (Active Low)
 ISR(INT0_vect)
 {
-    TRIGGER_STATE(NEW_OBJ_STATE);
+    mTim1_DelayMs(DEBOUNCE_DELAY_MS);
+    if ((PIND & OI_SENSOR_PIN) == 0x00)
+    {
+        TRIGGER_STATE(NEW_OBJ_STATE);
+    }
+
 }
 
 // == > HE sensor: Hall Effect sensor for homing tray (Active Low)
@@ -53,7 +58,6 @@ ISR(INT2_vect)
 {
     if ((PIND & OR_SENSOR_PIN)== OR_SENSOR_PIN && !g_ADCCounter) // == > if sensor triggered : Object sighted, and not currently processing. 
     {
-        PORTC = 0xF0;
         mTim1_DelayMs(100);
         
         // == > Set Global bool for object at sensor to be true
@@ -68,7 +72,6 @@ ISR(INT2_vect)
     }
     else if(g_ADCCounter >=  MIN_ADC_SAMPLES) // == > Sensor not asserted: Object passed. 
     {
-        PORTC = 0x0F;
         mTim1_DelayMs(100);
         
         // == > Set Global bool for object at sensor to be false
@@ -103,19 +106,31 @@ ISR(INT2_vect)
 // == > EX sensor: Optical sensor positioned at end of the conveyor belt (Active Low)
 ISR(INT3_vect)
 {
-    TRIGGER_STATE(POS_TRAY_HARD);
+    mTim1_DelayMs(DEBOUNCE_DELAY_MS);
+    if ((PIND & EX_SENSOR_PIN) == 0x00)
+    {
+        TRIGGER_STATE(POS_TRAY_HARD);
+    }
 }
 
 // == > System Pause Button: Pause system (Active Low)
 ISR(INT4_vect)
 {
-    TRIGGER_STATE(SYSTEM_END_STATE);
+    mTim1_DelayMs(DEBOUNCE_DELAY_MS);
+    if ((PIND & OI_SENSOR_PIN) == 0x00)
+    {
+        TRIGGER_STATE(SYSTEM_PAUSE_STATE);
+    }
 }
 
 // == > System Ramp Button:  (Active Low)
 ISR(INT5_vect)
 {
-    TRIGGER_STATE(SYSTEM_RAMP_STATE);
+    mTim1_DelayMs(DEBOUNCE_DELAY_MS);
+    if ((PIND & OI_SENSOR_PIN) == 0x00)
+    {
+        TRIGGER_STATE(SYSTEM_RAMP_STATE);
+    }
 }
 
 // == > ADC COMPL: Interrupt executed when ADC is done.
@@ -138,17 +153,7 @@ ISR(ADC_vect)
 
 ISR(BADISR_vect)
 {
-    PORTB = 0x00;
-    PORTC = 0XFF;
-    mTim1_DelayMs(1000);
-    PORTC = 0x00;
-    mTim1_DelayMs(500);
-    PORTC = 0XFF;
-    mTim1_DelayMs(1000);
-    PORTC = 0x00;
-    mTim1_DelayMs(500);
-
-    PORTC = 0XFF;
+    PORTC = 0xFF;
     while(true);
 }
 

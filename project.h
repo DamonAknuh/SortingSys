@@ -36,7 +36,7 @@
 #define MOTOR_END_DELAY_MS      (5)
 #endif // !ENABLE_SMALL_STEPPER
 
-#define DEBOUNCE_DELAY_MS       (150)
+#define DEBOUNCE_DELAY_MS       (75)
 
 #define KILL_SWITCH_BIT         (0b1)
 #define MOTOR_CONTR_BIT         (0b10)
@@ -73,6 +73,26 @@
 #define REL_SENSOR_MAX          (BLACK_TH_MAX)
 #define MIN_ADC_SAMPLES         (50)
 
+#define CURSOR_TOP_LINE         (0)
+#define CURSOR_BOT_LINE         (1)
+
+#define OBJECTS_CURSOR          (2)
+#define OBJECTS_CURSOR_SIZE     (2)
+
+#define STATE_CURSOR            (13)
+#define STATE_CURSOR_SIZE       (3)
+
+#define ADC_RST_CURSOR          (5)
+#define ADC_RST_CURSOR_SIZE     (5)
+
+
+#define ALUM_CURSOR             (4)
+#define STEEL_CURSOR            (0)
+#define BLACK_CURSOR            (8)
+#define WHITE_CURSOR            (12)
+
+#define OBJ_TYPES_CURSOR_SIZE   (2)
+
 
 #define MIN(x, y)                      (y < x ? y : x)
 #define COMPILE_VERIFY(EXPR, LINE)    typedef char ERROR_ ## LINE [EXPR ? 1 : -1]
@@ -104,6 +124,7 @@ void Project_ErrorState(void);
 void mTim0PWM_Init(void);
 void mTim1_Init(void);
 void mTim1_DelayMs(uint32_t count);
+void mTim1_DelayUs(double count);
 
 void mGPIO_Init(void);
 void mADC1_Init(void);

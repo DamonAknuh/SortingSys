@@ -13,6 +13,7 @@
 
 #include "project.h"
 #include "linkedlist_api.h"
+#include "LCD_api.h"
 
 /**********************************************************************
 ** ____ _    ____ ___  ____ _    ____
@@ -66,7 +67,7 @@ const uint8_t s_motorStepTable[] =
  #define MOTOR_CONS_STEPS       (20)
  #define MOTOR_RAMP_CONS        (MOTOR_RAMP_STEPS + MOTOR_CONS_STEPS)  
 
-inline STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
+inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
 {
     // == > Trapezoidal Acceleration Profiling.
     if (stepNum < (MOTOR_RAMP_STEPS * quadrants))
@@ -79,10 +80,9 @@ inline STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
     }
     else
     {
-        mTim1_DelayMs(( stepNum / quadrants) - MOTOR_RAMP_CONS  + MOTOR_END_DELAY_MS);
+        mTim1_DelayMs(( (stepNum - MOTOR_RAMP_CONS) / quadrants)   + MOTOR_END_DELAY_MS);
     }
 }
-
 
 #endif // ENABLE_LARGE_STEPPER
 

@@ -21,10 +21,10 @@ typedef enum
     INIT_STATE          = 0b00000001, // 1
     IDLE_STATE          = 0b00000010, // 2
     NEW_OBJ_STATE       = 0b00000100, // 3
-    SYSTEM_END_STATE    = 0b00001000, // 4
+    SYSTEM_PAUSE_STATE  = 0b00001000, // 4
     SYSTEM_RAMP_STATE   = 0b00010000, // 5
     POS_TRAY_HARD       = 0b00100000, // 6
-    
+
     CLASS_STATE         = 0b10000000, // 8
 } systemStates_e;
 
@@ -33,6 +33,7 @@ extern volatile uint8_t  g_CurrentState;
 
 #define TRIGGER_STATE(STATE) (g_CurrentState |= STATE)
 #define PROCESS_STATE(STATE) (g_CurrentState &= ~STATE)
+#define TOGGLE_STATE(STATE)  (g_CurrentState ^= STATE)
 #define EVAL_STATE(STATE)    (g_CurrentState & STATE)
 
 /**********************************************************************
