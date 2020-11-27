@@ -8,6 +8,8 @@ gpio.c
 
 isr.c
 
+LCD_util.c
+
 linkedlist_util.c
 
 main.c

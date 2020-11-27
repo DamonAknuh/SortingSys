@@ -40,6 +40,7 @@ C_SRCS +=  \
 ../fsm.c \
 ../gpio.c \
 ../isr.c \
+../LCD_util.c \
 ../linkedlist_util.c \
 ../main.c \
 ../motor_util.c \
@@ -56,6 +57,7 @@ OBJS +=  \
 fsm.o \
 gpio.o \
 isr.o \
+LCD_util.o \
 linkedlist_util.o \
 main.o \
 motor_util.o \
@@ -65,6 +67,7 @@ OBJS_AS_ARGS +=  \
 fsm.o \
 gpio.o \
 isr.o \
+LCD_util.o \
 linkedlist_util.o \
 main.o \
 motor_util.o \
@@ -74,6 +77,7 @@ C_DEPS +=  \
 fsm.d \
 gpio.d \
 isr.d \
+LCD_util.d \
 linkedlist_util.d \
 main.d \
 motor_util.d \
@@ -83,6 +87,7 @@ C_DEPS_AS_ARGS +=  \
 fsm.d \
 gpio.d \
 isr.d \
+LCD_util.d \
 linkedlist_util.d \
 main.d \
 motor_util.d \
@@ -117,6 +122,13 @@ LINKER_SCRIPT_DEP+=
 	
 
 ./isr.o: .././isr.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega2560 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\gcc\dev\atmega2560" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+./LCD_util.o: .././LCD_util.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega2560 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\gcc\dev\atmega2560" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

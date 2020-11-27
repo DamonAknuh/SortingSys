@@ -134,6 +134,12 @@
     <Compile Include="isr.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="LCD_api.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="LCD_util.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="linkedlist_api.h">
       <SubType>compile</SubType>
     </Compile>
