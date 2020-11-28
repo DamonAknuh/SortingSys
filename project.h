@@ -35,7 +35,7 @@
  #define MOTOR_END_DELAY_MS      (20)
 #else // !ENABLE_SMALL_STEPPER
  #define MOTOR_START_DELAY_MS    (20)
- #define MOTOR_END_DELAY_MS      (4)
+ #define MOTOR_END_DELAY_MS      (2)
 #endif // !ENABLE_SMALL_STEPPER
 
 #define DC_MOTOR_SPEED          (0x70)
@@ -116,7 +116,8 @@ extern volatile uint8_t  g_RefOBjectAtSensor;
 extern volatile uint16_t g_ADCMinResult;
 extern volatile uint16_t g_ADCSample;
 extern volatile uint32_t g_ADCCounter; 
-
+extern volatile uint16_t g_Tim3Seconds; 
+extern volatile uint16_t g_Tim3SecondsMax;
 
 /**********************************************************************
 ** ____ _  _ _  _ ____ ___ _ ____ _  _ ____
@@ -131,6 +132,7 @@ void mTim0PWM_Init(void);
 void mTim1_Init(void);
 void mTim1_DelayMs(uint32_t count);
 void mTim1_DelayUs(double count);
+void mTim3_DelayS(uint16_t count);
 
 void mGPIO_Init(void);
 void mADC1_Init(void);

@@ -16,6 +16,7 @@
 #include "linkedlist_api.h"
 #include "fsm_api.h"
 
+
 /**********************************************************************
 ** ____ _    ____ ___  ____ _    ____
 ** | __ |    |  | |__] |__| |    [__
@@ -82,10 +83,9 @@ ISR(INT2_vect)
 
         // == > ADC Sampling Complete: State = CLASS_STATE
         TRIGGER_STATE(CLASS_STATE);
-    }
+    } 
     else    // == > Bad Reading: Not enough samples to classify object. 
     {
-        // == > Clear Counter
         g_ADCCounter = 0;
 
         // == > Set Global bool for object at sensor to be false
@@ -105,7 +105,7 @@ ISR(INT3_vect)
 
         TRIGGER_STATE(POS_TRAY_HARD);
     }
-}
+} 
 
 // == > System Pause Button: Pause system (Active Low)
 ISR(INT4_vect)
@@ -148,6 +148,21 @@ ISR(ADC_vect)
     // == > Increment global counter for each ADC sample 
     g_ADCCounter++;
 }
+
+// ==> 
+ISR(TIMER3_COMPA_vect)
+{
+    if (g_Tim3Seconds > g_Tim3SecondsMax)
+    {
+        TIMSK3 &= ~_BV(OCIE3A);
+    }
+    else
+    {
+        TRIGGER_STATE(SYSTEM_PAUSE_STATE);
+        g_Tim3Seconds++;
+    }
+}
+
 
 
 ISR(BADISR_vect)

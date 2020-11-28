@@ -143,9 +143,12 @@ int main(void)
 
             TRIGGER_STATE(IDLE_STATE);
         }
-        if (EVAL_STATE(SYSTEM_RAMP_STATE))
+
+        if (EVAL_STATE(shadowState, SYSTEM_RAMP_STATE))
         {
-            
+            PROCESS_STATE(SYSTEM_RAMP_STATE);
+
+            mTim3_DelayS(4);
         }
 
     }

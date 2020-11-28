@@ -214,11 +214,11 @@ void PositionTrayState()
 
             s_PrevQuadrant =  nextQuadrant; 
         }
-		
+
         // == > If processed last node, and ramping state is asserted, set state to PAUSE_STATE.
-        if ((headNode->next == NULL) && EVAL_STATE(g_CurrentState, SYSTEM_RAMP_STATE))
+        if (EVAL_STATE(g_CurrentState, SYSTEM_RAMP_STATE))
         {
-            TRIGGER_STATE(SYSTEM_PAUSE_STATE);
+            TRIGGER_STATE(SYSTEM_RAMP_STATE);
         }
         else
         {
@@ -237,6 +237,13 @@ void PositionTrayState()
         TRIGGER_STATE(IDLE_STATE);
     }
     
+}
+
+void SystemRampState()
+{
+
+
+
 }
 
 /******************************************************************************************

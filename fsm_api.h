@@ -49,5 +49,6 @@ void PositionTrayState();
 void NewObjState();
 void ClassifyState();
 void SystemEndState();
+void SystemRampState();
 
 #endif /* FSM_H_ */

@@ -16,6 +16,9 @@
 
 #include "project.h"
 
+volatile uint16_t g_Tim3Seconds; 
+volatile uint16_t g_Tim3SecondsMax;
+
 /**********************************************************************
 ** ____ _  _ _  _ ____ ___ _ ____ _  _ ____
 ** |___ |  | |\ | |     |  | |  | |\ | [__
@@ -75,13 +78,103 @@ void mTim1_DelayUs(double count)
 }
 
 
+void mTim3_DelayS(uint16_t count)
+{
+    // == > Sets waveform Generation Bit Mode to PWM,
+    //        CTC mode for count up (mode 4)
+    //        TCCR = Timer Counter Control Register 1 B
+    TCCR3B |= _BV(WGM12);
+    
+    // == > Set Output Compare Register = 1000 cycles = 1ms = 0x03E8
+    //        Value is continuous compared with counter value
+    //        Match generates an Output compare interrupt.
+    OCR3A = 7812;
+	
+	g_Tim3Seconds = 0; 
+	g_Tim3SecondsMax = count;
+    
+    // == > Set Timer Counter Initial Value = 0x0000
+    TCNT3 &= 0x0;
+    
+    // == > Timer Interrupt Flag Register:
+    //        OCF01 is cleared when writing the following statement.
+    //        Needs SW as flag is HW controlled, and needs SW toggle
+    TIFR3 |= ( 1 << OCF3A);
+
+    TIMSK3 |= (_BV(OCIE3A));
+}
+
 void mTim1_Init()
 {
     // == > Set pre-scalar to 8 in B timer control register
     // Need to transfer line to next file
     // Timer Counter Control Register
     TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+    TCCR3B |= _BV(CS32) | _BV(CS30);
+
 }
+
 
 
 void mTim0PWM_Init()
