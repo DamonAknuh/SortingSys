@@ -130,26 +130,18 @@ void ClassifyState()
         if ( ALUM_TH_MAX >= shadowADCResult)
         {
             currentNode->data.type = ALUM_TYPE;
-            s_ObjectTracking[ALUM_TYPE]++;
-            LCDWriteIntXY(ALUM_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[ALUM_TYPE], OBJ_TYPES_CURSOR_SIZE);
         }
         else if((STEEL_TH_MIN <= shadowADCResult) && (STEEL_TH_MAX >= shadowADCResult))
         {
             currentNode->data.type = STEEL_TYPE;
-            s_ObjectTracking[STEEL_TYPE]++;
-            LCDWriteIntXY(STEEL_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[STEEL_TYPE], OBJ_TYPES_CURSOR_SIZE);
         }
         else if((BLACK_TH_MIN <= shadowADCResult) && (BLACK_TH_MAX >= shadowADCResult))
         {
             currentNode->data.type = BLACK_TYPE;
-            s_ObjectTracking[BLACK_TYPE]++;
-            LCDWriteIntXY(BLACK_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[BLACK_TYPE], OBJ_TYPES_CURSOR_SIZE);
         }
         else if((WHITE_TH_MIN <= shadowADCResult) && (WHITE_TH_MAX >= shadowADCResult))
         {
             currentNode->data.type = WHITE_TYPE;
-            s_ObjectTracking[WHITE_TYPE]++;
-            LCDWriteIntXY(WHITE_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[WHITE_TYPE], OBJ_TYPES_CURSOR_SIZE);
         }
         else
         {
@@ -209,6 +201,8 @@ void PositionTrayState()
         // TYPE: STEEL = 00, ALUM = 01, WHITE = 10, BLACK = 11s
         nextQuadrant = headNode->data.type;
 
+        s_ObjectTracking[nextQuadrant]++;
+
         // == > if not already on quadrant need to move stepper. 
         if (nextQuadrant != s_PrevQuadrant)
         {
@@ -220,8 +214,7 @@ void PositionTrayState()
 
             s_PrevQuadrant =  nextQuadrant; 
         }
-
-
+		
         // == > If processed last node, and ramping state is asserted, set state to PAUSE_STATE.
         if ((headNode->next == NULL) && EVAL_STATE(g_CurrentState, SYSTEM_RAMP_STATE))
         {
@@ -256,10 +249,17 @@ void PositionTrayState()
 void SystemEndState()
 {
     LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "PAUSE");
+
 #if ENABLE_DEBUG_BUILD
     LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, SYSTEM_PAUSE_STATE, STATE_CURSOR_SIZE);
     LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList(), OBJECTS_CURSOR_SIZE);
 #endif // ENABLE_DEBUG_BUILD
+
+    LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList(), OBJECTS_CURSOR_SIZE);
+    LCDWriteIntXY(ALUM_CURSOR, CURSOR_BOT_LINE,  s_ObjectTracking[ALUM_TYPE], OBJ_TYPES_CURSOR_SIZE);
+    LCDWriteIntXY(STEEL_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[STEEL_TYPE], OBJ_TYPES_CURSOR_SIZE);
+    LCDWriteIntXY(BLACK_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[BLACK_TYPE], OBJ_TYPES_CURSOR_SIZE);
+    LCDWriteIntXY(WHITE_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[WHITE_TYPE], OBJ_TYPES_CURSOR_SIZE);
 
     // Turn Off DC Motor (todo brake to high VCC or turn off bottom bits )
     PORTB =  DC_MOTOR_OFF;

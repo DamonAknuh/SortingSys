@@ -72,24 +72,32 @@ const uint8_t s_motorStepTable[] =
  #define MOTOR_STEPS_REV        (200)
  #define MOTOR_QUARTER_STEPS    (MOTOR_STEPS_REV / 4)
  #define MOTOR_RAMP_STEPS       (15)
- #define MOTOR_CONS_STEPS       (20)
+ #define MOTOR_CONS_STEPS       (30)
  #define MOTOR_RAMP_CONS        (MOTOR_RAMP_STEPS + MOTOR_CONS_STEPS)  
 
-inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
+
+const uint8_t s_profilerStepLimits[2][3] = 
+ {
+    {16,  45,   43},    
+    {16,  95,   93}
+ };
+
+
+inline void STMotorDelayProfile(uint32_t stepNum, uint8_t profile)
 {
 #if !ENABLE_MOTOR_PROFILE
     // == > Trapezoidal Acceleration Profiling.
-    if (stepNum < (MOTOR_RAMP_STEPS * quadrants))
+    if (stepNum < s_profilerStepLimits[profile][0])
     {
-        mTim1_DelayMs(MOTOR_START_DELAY_MS - (stepNum / quadrants));
+        mTim1_DelayMs(MOTOR_START_DELAY_MS - stepNum);
     }
-    else if (stepNum < (MOTOR_CONS_STEPS * quadrants))
+    else if (stepNum < s_profilerStepLimits[profile][1])
     {
         mTim1_DelayMs(MOTOR_END_DELAY_MS);
     }
     else
     {
-        mTim1_DelayMs(( (stepNum - MOTOR_RAMP_CONS) / quadrants)   +  MOTOR_END_DELAY_MS);
+        mTim1_DelayMs(3 * (stepNum - s_profilerStepLimits[profile][2]));
     }
 #else 
     mTim1_DelayMs(MOTOR_START_DELAY_MS);
@@ -122,7 +130,7 @@ void STMotorMove(bool dirCW, uint8_t quadrants)
             // the steps in the step table (1,2,3,4,1,2...) to turn motor CW
             PORTA = s_motorStepTable[(s_CurrentMotorStep + i) % SIZEOF_MOTOR_TABLE];
 
-            STMotorDelayProfile(i, quadrants);
+            STMotorDelayProfile(i, quadrants -1);
         }
 
         s_CurrentMotorStep = ((s_CurrentMotorStep + i - 1) % SIZEOF_MOTOR_TABLE);

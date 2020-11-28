@@ -143,6 +143,11 @@ int main(void)
 
             TRIGGER_STATE(IDLE_STATE);
         }
+        if (EVAL_STATE(SYSTEM_RAMP_STATE))
+        {
+            
+        }
+
     }
 
 }

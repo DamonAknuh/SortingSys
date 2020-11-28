@@ -35,7 +35,7 @@
  #define MOTOR_END_DELAY_MS      (20)
 #else // !ENABLE_SMALL_STEPPER
  #define MOTOR_START_DELAY_MS    (20)
- #define MOTOR_END_DELAY_MS      (5)
+ #define MOTOR_END_DELAY_MS      (4)
 #endif // !ENABLE_SMALL_STEPPER
 
 #define DC_MOTOR_SPEED          (0x70)
