@@ -43,7 +43,6 @@ ISR(INT0_vect)
     {
         TRIGGER_STATE(NEW_OBJ_STATE);
     }
-
 }
 
 // == > HE sensor: Hall Effect sensor for homing tray (Active Low)
@@ -53,7 +52,7 @@ ISR(INT1_vect)
     g_HomingFlag = 1; 
     // == > Disable the HE sensor interrupt from firing again. 
     EIMSK &= ~_BV(INT1);
-}
+}   
 
 // == > OR sensor: Optical sensor for detecting object at ADC conversion (Active Hi)
 //                  NOTE: Triggered on any edge change. 
@@ -149,17 +148,18 @@ ISR(ADC_vect)
     g_ADCCounter++;
 }
 
-// ==> 
+// ==> TIM 3 COMP A: Interrupt executed when timer counts 1 second. 
 ISR(TIMER3_COMPA_vect)
 {
-    if (g_Tim3Seconds > g_Tim3SecondsMax)
+    if (g_Tim3Seconds < g_Tim3SecondsMax)
     {
-        TIMSK3 &= ~_BV(OCIE3A);
+        PORTC = g_Tim3Seconds;
+        g_Tim3Seconds++;  
     }
     else
     {
         TRIGGER_STATE(SYSTEM_PAUSE_STATE);
-        g_Tim3Seconds++;
+        TIMSK3 &= ~_BV(OCIE3A);
     }
 }
 

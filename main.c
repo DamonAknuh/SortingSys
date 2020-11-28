@@ -61,26 +61,25 @@ int main(void)
     cli();
 
     // == > Initialize CNT timer 1 used for busy waits
-    // todo: might want to change timer to correct usage. 
     mTim1_Init();
     mTim1_DelayMs(10);
+
+    // == > Initialize CNT timer 3 used for interrupt driven waits
+    mTim3_Init();
 
     // == > Initialize the PWM timer
     mTim0PWM_Init();
 
     // == > Initialize the GPIO used by the project
-    // todo: change to correct GPIO
-    // todo: setup all interrupts
     mGPIO_Init();
 
     // == > Initialize the ADC used by the project
-    // todo: change to ADC1 10-bit 
     mADC1_Init();
 
     // == > Initailize the LCD for the project
     mLCD_Init(LS_BLINK | LS_ULINE);
 
-    //Clear the screen
+    // == > Clear the screen
     LCDClear();
 
     // == > Set Current State to INIT STATE for 
@@ -120,7 +119,7 @@ int main(void)
             ClassifyState();
         }
 
-        if (EVAL_STATE(shadowState, NEW_OBJ_STATE) && !EVAL_STATE(shadowState, SYSTEM_RAMP_STATE))
+        if (EVAL_STATE(shadowState, NEW_OBJ_STATE))
         {
             // == > Processed new object deassert object
             PROCESS_STATE(NEW_OBJ_STATE);

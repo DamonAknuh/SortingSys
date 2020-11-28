@@ -130,6 +130,7 @@ void Project_ErrorState(void);
 
 void mTim0PWM_Init(void);
 void mTim1_Init(void);
+void mTim3_Init(void);
 void mTim1_DelayMs(uint32_t count);
 void mTim1_DelayUs(double count);
 void mTim3_DelayS(uint16_t count);

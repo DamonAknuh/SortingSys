@@ -57,7 +57,7 @@ void IdleState()
 #if ENABLE_DEBUG_BUILD
     LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, IDLE_STATE, STATE_CURSOR_SIZE);
 #endif // ENABLE_DEBUG_BUILD
-
+    // == > Turn the DC motor back on: Counter Clockwise
     PORTB =  DC_MOTOR_CCW;
 }
 
@@ -71,7 +71,7 @@ void IdleState()
 void InitState()
 {
 
-    
+    LCDClear(); 
     LCDWriteStringXY(0, 0,"Homing...");
 
     // == > Initialize the tray on the starting position. 
@@ -215,7 +215,7 @@ void PositionTrayState()
             s_PrevQuadrant =  nextQuadrant; 
         }
 
-        // == > If processed last node, and ramping state is asserted, set state to PAUSE_STATE.
+        // == > If Ramping state is set then reset the timer
         if (EVAL_STATE(g_CurrentState, SYSTEM_RAMP_STATE))
         {
             TRIGGER_STATE(SYSTEM_RAMP_STATE);
@@ -227,23 +227,11 @@ void PositionTrayState()
         // == > Finished Processing Node: free it. 
         free(headNode);
     }
-    // == > IF node is NULL, and ramp button has been pressed, trigger system end state. 
-    else if (EVAL_STATE(g_CurrentState, SYSTEM_RAMP_STATE))
-    {
-        TRIGGER_STATE(SYSTEM_PAUSE_STATE);
-    }
     else
     {
         TRIGGER_STATE(IDLE_STATE);
     }
     
-}
-
-void SystemRampState()
-{
-
-
-
 }
 
 /******************************************************************************************
@@ -255,13 +243,13 @@ void SystemRampState()
 
 void SystemEndState()
 {
-    LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "PAUSE");
+    
 
 #if ENABLE_DEBUG_BUILD
     LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, SYSTEM_PAUSE_STATE, STATE_CURSOR_SIZE);
     LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList(), OBJECTS_CURSOR_SIZE);
 #endif // ENABLE_DEBUG_BUILD
-
+    LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "PAUSE");
     LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList(), OBJECTS_CURSOR_SIZE);
     LCDWriteIntXY(ALUM_CURSOR, CURSOR_BOT_LINE,  s_ObjectTracking[ALUM_TYPE], OBJ_TYPES_CURSOR_SIZE);
     LCDWriteIntXY(STEEL_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[STEEL_TYPE], OBJ_TYPES_CURSOR_SIZE);
