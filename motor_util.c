@@ -77,7 +77,7 @@ const uint8_t s_motorStepTable[] =
 
 inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
 {
-#if ENABLE_MOTOR_PROFILE
+#if !ENABLE_MOTOR_PROFILE
     // == > Trapezoidal Acceleration Profiling.
     if (stepNum < (MOTOR_RAMP_STEPS * quadrants))
     {
@@ -89,7 +89,7 @@ inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
     }
     else
     {
-        mTim1_DelayMs(( (stepNum - MOTOR_RAMP_CONS) / quadrants)   + MOTOR_END_DELAY_MS);
+        mTim1_DelayMs(( (stepNum - MOTOR_RAMP_CONS) / quadrants)   +  MOTOR_END_DELAY_MS);
     }
 #else 
     mTim1_DelayMs(MOTOR_START_DELAY_MS);

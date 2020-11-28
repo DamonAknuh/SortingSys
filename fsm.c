@@ -221,7 +221,6 @@ void PositionTrayState()
             s_PrevQuadrant =  nextQuadrant; 
         }
 
-        mTim1_DelayMs(1000);
 
         // == > If processed last node, and ramping state is asserted, set state to PAUSE_STATE.
         if ((headNode->next == NULL) && EVAL_STATE(g_CurrentState, SYSTEM_RAMP_STATE))
@@ -270,4 +269,6 @@ void SystemEndState()
     PORTB =  0b0000;
 
     while(EVAL_STATE(g_CurrentState, SYSTEM_PAUSE_STATE));
+
+    LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "-----");
 }

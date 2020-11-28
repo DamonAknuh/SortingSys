@@ -47,7 +47,7 @@ void mGPIO_Init(void)
 
     // ==>    Set DDRE as Input port. Used for input interrupts for
     //        the system pause and system ramp buttons. 
-    DDRE = 0b00110000;
+    DDRE = 0b00000000;
 
     // ========= CONFIGURE INTERRUPTS ============================
     // == > Set INT0 (PORT D.0) to be interrupt on falling edge OI
