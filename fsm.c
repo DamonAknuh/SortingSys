@@ -56,14 +56,22 @@ void IdleState()
 {
 #if ENABLE_DEBUG_BUILD
     LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, IDLE_STATE, STATE_CURSOR_SIZE);
-    mTim1_DelayMs(100);
 #endif // ENABLE_DEBUG_BUILD
 
     PORTB =  DC_MOTOR_CCW;
 }
 
+/**********************************************************************
+**  _ _  _ _ ___     ____ ___ ____ ___ ____ 
+**  | |\ | |  |      [__   |  |__|  |  |___ 
+**  | | \| |  |  ___ ___]  |  |  |  |  |___
+**                                          
+***********************************************************************/
+
 void InitState()
 {
+
+    
     LCDWriteStringXY(0, 0,"Homing...");
 
     // == > Initialize the tray on the starting position. 
@@ -74,7 +82,7 @@ void InitState()
     LCDWriteStringXY(0, 0, "Homed!");
     mTim1_DelayMs(750);
 
-    LCDWriteStringXY(0, CURSOR_TOP_LINE, "L:00|     |S:001");
+    LCDWriteStringXY(0, CURSOR_TOP_LINE, "L:--|-----|S:---");
     LCDWriteStringXY(0, CURSOR_BOT_LINE, "00S|00A|00B|00W");
     
     // == > Turn off Interrupt Associated with Hall Effect Sensor.
@@ -104,14 +112,13 @@ void InitState()
 
 void ClassifyState()
 {
-#if ENABLE_DEBUG_BUILD
-    LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, CLASS_STATE, STATE_CURSOR_SIZE);
-#endif // ENABLE_DEBUG_BUILD
-
-    pNode_t currentNode;
+    pNode_t  currentNode;
     uint16_t shadowADCResult = g_ADCMinResult;
 
+#if ENABLE_DEBUG_BUILD
+    LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, CLASS_STATE, STATE_CURSOR_SIZE);
     LCDWriteIntXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, shadowADCResult, ADC_RST_CURSOR_SIZE);
+#endif // ENABLE_DEBUG_BUILD
 
     // == > Dequeue the current node from the LL. 
     DequeueCurrentNode(&currentNode);
@@ -124,36 +131,31 @@ void ClassifyState()
         {
             currentNode->data.type = ALUM_TYPE;
             s_ObjectTracking[ALUM_TYPE]++;
-
             LCDWriteIntXY(ALUM_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[ALUM_TYPE], OBJ_TYPES_CURSOR_SIZE);
-    
         }
-        else if(STEEL_TH_MIN <= shadowADCResult && STEEL_TH_MAX >= shadowADCResult)
+        else if((STEEL_TH_MIN <= shadowADCResult) && (STEEL_TH_MAX >= shadowADCResult))
         {
             currentNode->data.type = STEEL_TYPE;
             s_ObjectTracking[STEEL_TYPE]++;
             LCDWriteIntXY(STEEL_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[STEEL_TYPE], OBJ_TYPES_CURSOR_SIZE);
         }
-        else if(BLACK_TH_MIN <= shadowADCResult && BLACK_TH_MAX >= shadowADCResult)
+        else if((BLACK_TH_MIN <= shadowADCResult) && (BLACK_TH_MAX >= shadowADCResult))
         {
             currentNode->data.type = BLACK_TYPE;
             s_ObjectTracking[BLACK_TYPE]++;
-
             LCDWriteIntXY(BLACK_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[BLACK_TYPE], OBJ_TYPES_CURSOR_SIZE);
         }
-        else if(WHITE_TH_MIN <= shadowADCResult && WHITE_TH_MAX >= shadowADCResult)
+        else if((WHITE_TH_MIN <= shadowADCResult) && (WHITE_TH_MAX >= shadowADCResult))
         {
             currentNode->data.type = WHITE_TYPE;
             s_ObjectTracking[WHITE_TYPE]++;
             LCDWriteIntXY(WHITE_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[WHITE_TYPE], OBJ_TYPES_CURSOR_SIZE);
-
-            
         }
-
-        // == > Increment the stage of the node. 
-        currentNode->data.stage = 0b01;
+        else
+        {
+            s_ObjectTracking[BLACK_TYPE]++;
+        }
     }
-
 }
 
 /**********************************************************************
@@ -168,7 +170,6 @@ void NewObjState()
 #if ENABLE_DEBUG_BUILD
     LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, NEW_OBJ_STATE, STATE_CURSOR_SIZE);
     LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList() + 1, OBJECTS_CURSOR_SIZE);
-    mTim1_DelayMs(100);
 #endif // ENABLE_DEBUG_BUILD
 
     pNode_t newNode; 
@@ -193,15 +194,11 @@ void PositionTrayState()
 #if ENABLE_DEBUG_BUILD
     LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, POS_TRAY_HARD, 3);
     LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList() - 1, OBJECTS_CURSOR_SIZE);
-    mTim1_DelayMs(100);
 #endif // ENABLE_DEBUG_BUILD
 
     pNode_t headNode;
     int8_t  quadrantsToMove;
     uint8_t nextQuadrant; 
-
-    // Turn Off DC Motor (todo brake to high VCC or turn off bottom bits )
-    PORTB =  DC_MOTOR_OFF;
 
     // == > Dequeue the head node from the LinkedList. 
     DequeueHeadNode(&headNode);
@@ -212,16 +209,11 @@ void PositionTrayState()
         // TYPE: STEEL = 00, ALUM = 01, WHITE = 10, BLACK = 11s
         nextQuadrant = headNode->data.type;
 
-        // == > Finished Processing Node: free it. 
-        free(headNode);
-
         // == > if not already on quadrant need to move stepper. 
         if (nextQuadrant != s_PrevQuadrant)
         {
             // == > Grab the tray motor from the constant table above. 
             quadrantsToMove = s_trayTransitionTable[s_PrevQuadrant][nextQuadrant];
-
-            LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, quadrantsToMove, 3 );
 
             // == > Move stepper motor.
             STMotorMove((quadrantsToMove > 0), abs(quadrantsToMove)); 
@@ -231,10 +223,20 @@ void PositionTrayState()
 
         mTim1_DelayMs(1000);
 
-        TRIGGER_STATE(IDLE_STATE);
+        // == > If processed last node, and ramping state is asserted, set state to PAUSE_STATE.
+        if ((headNode->next == NULL) && EVAL_STATE(g_CurrentState, SYSTEM_RAMP_STATE))
+        {
+            TRIGGER_STATE(SYSTEM_PAUSE_STATE);
+        }
+        else
+        {
+            TRIGGER_STATE(IDLE_STATE);
+        }
+        // == > Finished Processing Node: free it. 
+        free(headNode);
     }
     // == > IF node is NULL, and ramp button has been pressed, trigger system end state. 
-    else if (EVAL_STATE(SYSTEM_RAMP_STATE))
+    else if (EVAL_STATE(g_CurrentState, SYSTEM_RAMP_STATE))
     {
         TRIGGER_STATE(SYSTEM_PAUSE_STATE);
     }
@@ -254,19 +256,18 @@ void PositionTrayState()
 
 void SystemEndState()
 {
-#if ENABLE_DEBUG_BUILD
     LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "PAUSE");
+#if ENABLE_DEBUG_BUILD
     LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, SYSTEM_PAUSE_STATE, STATE_CURSOR_SIZE);
     LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList(), OBJECTS_CURSOR_SIZE);
 #endif // ENABLE_DEBUG_BUILD
 
-    cli();
-
     // Turn Off DC Motor (todo brake to high VCC or turn off bottom bits )
     PORTB =  DC_MOTOR_OFF;
 
-    while(EVAL_STATE(SYSTEM_PAUSE_STATE));
+    mTim1_DelayMs(20);
 
-    sei();
+    PORTB =  0b0000;
 
+    while(EVAL_STATE(g_CurrentState, SYSTEM_PAUSE_STATE));
 }

@@ -50,11 +50,11 @@ void mGPIO_Init(void)
     DDRE = 0b00110000;
 
     // ========= CONFIGURE INTERRUPTS ============================
-    // == > Set INT0 (PORT D.0) to be interrupt on falling edge
+    // == > Set INT0 (PORT D.0) to be interrupt on falling edge OI
     EICRA |= _BV(ISC01);
     // == > Set INT1 (PORT D.1) to be interrupt on falling edge
     EICRA |= _BV(ISC11);
-    // == > Set INT2 (PORT D.2) to be interrupt on any edge. 
+    // == > Set INT2 (PORT D.2) to be interrupt on any edge. OR
     EICRA |= _BV(ISC20);
     // == > Set INT3 (PORT D.3) to be interrupt on falling edge
     EICRA |= _BV(ISC31);
@@ -65,14 +65,6 @@ void mGPIO_Init(void)
     
     // == > Enable INT 0-5, on PD[0-3], and PE[4,5]
     EIMSK |= _BV(INT0) | _BV(INT1) | _BV(INT2) | _BV(INT3) | _BV(INT4) | _BV(INT5);
-
-
-#if ENABLE_ALL_SENSORS
-
-    // ENABLE IND sensor 
-
-
-#endif // ENABLE_ALL_SENSORS
 }
 
 void mADC1_Init(void)

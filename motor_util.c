@@ -47,7 +47,7 @@ const uint8_t s_motorStepTable[] =
 
 inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
 {
-    mTim1_DelayMs(MOTOR_END_DELAY_MS);
+    mTim1_DelayMs(MOTOR_START_DELAY_MS);
 }
 
 #elif !ENABLE_SMALL_STEPPER 
@@ -55,10 +55,18 @@ inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
 // Large Stepper step table
 const uint8_t s_motorStepTable[] =
 {
+#if ENABLE_MOTOR_PROFILE
     0b110000,
     0b000110,
     0b101000,
     0b000101
+#else
+// == > 2 Phase Full Stepper motor operation
+    0b110101,   // 0b000101 | 0b110000
+    0b110110,   // 0b110000 | 0b000110
+    0b101110,   // 0b000110 | 0b101000
+    0b101101,   // 0b101000 | 0b000101
+#endif // ENABLE_MOTOR_PROFILE
 };
 
  #define MOTOR_STEPS_REV        (200)
@@ -69,6 +77,7 @@ const uint8_t s_motorStepTable[] =
 
 inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
 {
+#if ENABLE_MOTOR_PROFILE
     // == > Trapezoidal Acceleration Profiling.
     if (stepNum < (MOTOR_RAMP_STEPS * quadrants))
     {
@@ -82,9 +91,12 @@ inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
     {
         mTim1_DelayMs(( (stepNum - MOTOR_RAMP_CONS) / quadrants)   + MOTOR_END_DELAY_MS);
     }
+#else 
+    mTim1_DelayMs(MOTOR_START_DELAY_MS);
+#endif // ENABLE_MOTOR_PROFILE
 }
 
-#endif // ENABLE_LARGE_STEPPER
+#endif // ENABLE_SMALL_STEPPER
 
 #define SIZEOF_MOTOR_TABLE    (sizeof(s_motorStepTable)/sizeof(s_motorStepTable[0])) 
 
@@ -113,7 +125,7 @@ void STMotorMove(bool dirCW, uint8_t quadrants)
             STMotorDelayProfile(i, quadrants);
         }
 
-        s_CurrentMotorStep = (s_CurrentMotorStep + i - 1) % SIZEOF_MOTOR_TABLE;
+        s_CurrentMotorStep = ((s_CurrentMotorStep + i - 1) % SIZEOF_MOTOR_TABLE);
 
     }
     else if (!dirCW)
@@ -134,10 +146,11 @@ void STMotorMove(bool dirCW, uint8_t quadrants)
 
 }
 
-
 void mTray_Init(void)
 {
-    uint32_t i;
+    uint16_t i;
+
+    s_CurrentMotorStep++;
 
     for (i = 0; !g_HomingFlag; i++)
     {
@@ -147,6 +160,6 @@ void mTray_Init(void)
         mTim1_DelayMs(MOTOR_START_DELAY_MS);
     }
 
-    s_CurrentMotorStep = (i % 4);
+    s_CurrentMotorStep = ((s_CurrentMotorStep + i - 1) % SIZEOF_MOTOR_TABLE);
 }
 

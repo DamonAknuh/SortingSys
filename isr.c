@@ -38,7 +38,6 @@ volatile uint8_t g_RefOBjectAtSensor;
 // == > OI sensor: Optical sensor for first object detection. (Active Low)
 ISR(INT0_vect)
 {
-    mTim1_DelayMs(DEBOUNCE_DELAY_MS);
     if ((PIND & OI_SENSOR_PIN) == 0x00)
     {
         TRIGGER_STATE(NEW_OBJ_STATE);
@@ -51,36 +50,33 @@ ISR(INT1_vect)
 {
     // == > Trigger the stepper motor to stop when homed.  
     g_HomingFlag = 1; 
+    // == > Disable the HE sensor interrupt from firing again. 
+    EIMSK &= ~_BV(INT1);
 }
 
 // == > OR sensor: Optical sensor for detecting object at ADC conversion (Active Hi)
+//                  NOTE: Triggered on any edge change. 
 ISR(INT2_vect)
 {
-    if ((PIND & OR_SENSOR_PIN)== OR_SENSOR_PIN && !g_ADCCounter) // == > if sensor triggered : Object sighted, and not currently processing. 
+    if (((PIND & OR_SENSOR_PIN) == OR_SENSOR_PIN) && !g_ADCCounter) // == > if sensor triggered : Object sighted, and not currently processing. 
     {
-        mTim1_DelayMs(100);
-        
-        // == > Set Global bool for object at sensor to be true
+        // == > Enable the ADC interrupt
         ADCSRA |= _BV(ADIE);  // ==> Enable ADC
         
-        // == > Reset the ADC Sampling variables
-        g_ADCSample = 0xFFFF; 
-        g_ADCCounter= 0;
+        // == > Reset the ADC Sampling variable
+        g_ADCSample = 0xFFFF;
         
         // == > Trigger ADC Sampling.
         ADCSRA |= _BV(ADSC);
     }
     else if(g_ADCCounter >=  MIN_ADC_SAMPLES) // == > Sensor not asserted: Object passed. 
     {
-        mTim1_DelayMs(100);
-        
         // == > Set Global bool for object at sensor to be false
         ADCSRA &= ~_BV(ADIE);  // ==> Enable ADC
         ADCSRA |= _BV(ADIF);   // ==> Clear Flag in Interrupt
 
-        // Save the old ADC result
+        // == > Save the objects minimum ADC result for processing. 
         g_ADCMinResult = g_ADCSample;
-
         // == > Clear Counter
         g_ADCCounter = 0;
 
@@ -95,20 +91,18 @@ ISR(INT2_vect)
         // == > Set Global bool for object at sensor to be false
         ADCSRA &= ~_BV(ADIE);  // ==> Enable ADC
         ADCSRA |= _BV(ADIF);   // ==> Clear Flag in Interrupt
-
-        // == > Change Interrupt to be only on falling edge. 
-        //EICRA ^= _BV(ISC20); 
     }
     
 }
 
-
 // == > EX sensor: Optical sensor positioned at end of the conveyor belt (Active Low)
 ISR(INT3_vect)
 {
-    mTim1_DelayMs(DEBOUNCE_DELAY_MS);
     if ((PIND & EX_SENSOR_PIN) == 0x00)
     {
+        // == > Brake the DC motor to VCC
+        PORTB =  DC_MOTOR_OFF;
+
         TRIGGER_STATE(POS_TRAY_HARD);
     }
 }
@@ -116,9 +110,12 @@ ISR(INT3_vect)
 // == > System Pause Button: Pause system (Active Low)
 ISR(INT4_vect)
 {
-    mTim1_DelayMs(DEBOUNCE_DELAY_MS);
-    if ((PIND & OI_SENSOR_PIN) == 0x00)
+    mTim1_DelayMs(50);
+    if ((PINE & SYS_PAUSE_PIN) == 0x00)
     {
+        // == > Brake the DC motor to VCC
+        PORTB =  DC_MOTOR_OFF;
+
         TOGGLE_STATE(SYSTEM_PAUSE_STATE);
     }
 }
@@ -126,8 +123,7 @@ ISR(INT4_vect)
 // == > System Ramp Button:  (Active Low)
 ISR(INT5_vect)
 {
-    mTim1_DelayMs(DEBOUNCE_DELAY_MS);
-    if ((PIND & OI_SENSOR_PIN) == 0x00)
+    if ((PINE & SYS_RAMP_PIN) == 0x00)
     {
         TRIGGER_STATE(SYSTEM_RAMP_STATE);
     }
@@ -143,11 +139,14 @@ ISR(ADC_vect)
     
     uint16_t result = (ADCHigh << 8) | (ADCLow); 
     
-    g_ADCSample = MIN(g_ADCSample, result);
-
+    // == > Save the current minimum value of the result
+    g_ADCSample = MIN(g_ADCSample, result); // g_ADCSample = 0xFFF initally 
+    
+    // == > Restarts ADC Conversion 
     ADCSRA |= _BV(ADSC);
-	
-	g_ADCCounter++;
+
+    // == > Increment global counter for each ADC sample 
+    g_ADCCounter++;
 }
 
 

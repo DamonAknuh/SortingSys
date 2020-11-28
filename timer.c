@@ -100,7 +100,7 @@ void mTim0PWM_Init()
     TCCR0B |= (_BV(CS01) | _BV(CS00));
     
     // Set the duty cycle to  %
-    OCR0A  = 0x7F;
+    OCR0A  = DC_MOTOR_SPEED;
 }
 
 

@@ -97,7 +97,14 @@ int main(void)
     {
         shadowState = g_CurrentState;
 
-        if (shadowState & POS_TRAY_HARD)
+        if (EVAL_STATE(shadowState, SYSTEM_PAUSE_STATE))
+        {
+            SystemEndState();
+
+            TRIGGER_STATE(IDLE_STATE);
+        }
+
+        if (EVAL_STATE(shadowState, POS_TRAY_HARD))
         {
             // == > Positioning the object. Deassert the State
             PROCESS_STATE(POS_TRAY_HARD);
@@ -105,7 +112,7 @@ int main(void)
             PositionTrayState();
         }
 
-        if (shadowState & CLASS_STATE)
+        if (EVAL_STATE(shadowState, CLASS_STATE))
         {
             // == > Classifying the Object. Deassert the State
             PROCESS_STATE(CLASS_STATE);
@@ -113,8 +120,7 @@ int main(void)
             ClassifyState();
         }
 
-
-        if ((shadowState & NEW_OBJ_STATE) && !(shadowState & SYSTEM_RAMP_STATE))
+        if (EVAL_STATE(shadowState, NEW_OBJ_STATE) && !EVAL_STATE(shadowState, SYSTEM_RAMP_STATE))
         {
             // == > Processed new object deassert object
             PROCESS_STATE(NEW_OBJ_STATE);
@@ -122,22 +128,13 @@ int main(void)
             NewObjState();
         }
 
-        if (shadowState & SYSTEM_PAUSE_STATE)
-        {
-            // == > Process and clear all other states
-            PROCESS_STATE(~SYSTEM_PAUSE_STATE);
-            SystemEndState();
-
-            TRIGGER_STATE(IDLE_STATE);
-        }
-
-        if (shadowState & IDLE_STATE)
+        if (EVAL_STATE(shadowState, IDLE_STATE))
         {
             PROCESS_STATE(IDLE_STATE);
 
             IdleState();
         }
-        if (shadowState & INIT_STATE)
+        if (EVAL_STATE(shadowState, INIT_STATE))
         {
             // == > Initialized System deassert object
             PROCESS_STATE(INIT_STATE);

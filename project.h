@@ -18,7 +18,7 @@
 ** |__/ |___ |    | | \| |___ ___]
 **
 ***********************************************************************/
-#define ENABLE_DEBUG_BUILD      (1)
+#define ENABLE_DEBUG_BUILD      (0)
 
 #define ENABLE_ALL_SENSORS      (0)
 // Configuration switch.
@@ -26,15 +26,19 @@
 //        ENABLE_SMALL_STEPPER == false for lab stepper values
 #define ENABLE_SMALL_STEPPER    (0)
 
+#define ENABLE_MOTOR_PROFILE    (0)
+
 #define DISPLAY_DELAY_MS        (250)
 
-#if ENABLE_SMALL_STEPPER
-#define MOTOR_START_DELAY_MS    (35)
-#define MOTOR_END_DELAY_MS      (20)
+#if     ENABLE_SMALL_STEPPER  
+ #define MOTOR_START_DELAY_MS    (35)
+ #define MOTOR_END_DELAY_MS      (20)
 #else // !ENABLE_SMALL_STEPPER
-#define MOTOR_START_DELAY_MS    (20)
-#define MOTOR_END_DELAY_MS      (5)
+ #define MOTOR_START_DELAY_MS    (20)
+ #define MOTOR_END_DELAY_MS      (5)
 #endif // !ENABLE_SMALL_STEPPER
+
+#define DC_MOTOR_SPEED          (0x70)
 
 #define DEBOUNCE_DELAY_MS       (75)
 
@@ -42,12 +46,15 @@
 #define MOTOR_CONTR_BIT         (0b10)
 
 #define DC_MOTOR_CCW            (0b0111)
-#define DC_MOTOR_OFF            (0b0000)
+#define DC_MOTOR_OFF            (0b1111)
 
 #define OI_SENSOR_PIN           (0b0001)    // PD0 - Active low
 #define HE_SENSOR_PIN           (0b0010)    // PD1 - Active low
 #define OR_SENSOR_PIN           (0b0100)    // PD2 - Active high
 #define EX_SENSOR_PIN           (0b1000)    // PD3 - Active low
+
+#define SYS_PAUSE_PIN           (0b00010000)// PE4 - Active Low
+#define SYS_RAMP_PIN            (0b00100000)// PE5 - Active Low
 
 #define ST_MOTOR_CCW            (1)
 #define ST_MOTOR_CW             (!ST_MOTOR_CCW)
@@ -96,7 +103,6 @@
 
 #define MIN(x, y)                      (y < x ? y : x)
 #define COMPILE_VERIFY(EXPR, LINE)    typedef char ERROR_ ## LINE [EXPR ? 1 : -1]
-
 
 /**********************************************************************
 ** ____ _    ____ ___  ____ _    ____

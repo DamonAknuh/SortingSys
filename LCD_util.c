@@ -43,7 +43,7 @@ void LCDByte(uint8_t cmd,uint8_t isData)
     uint8_t lowNibble;			//Nibbles
     uint8_t temp;
 
-    highNibble = cmd>>4;
+    highNibble = cmd >> 4;
     lowNibble = (cmd & 0x0F);
 
     if(isData == 0)

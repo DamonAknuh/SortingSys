@@ -34,7 +34,7 @@ extern volatile uint8_t  g_CurrentState;
 #define TRIGGER_STATE(STATE) (g_CurrentState |= STATE)
 #define PROCESS_STATE(STATE) (g_CurrentState &= ~STATE)
 #define TOGGLE_STATE(STATE)  (g_CurrentState ^= STATE)
-#define EVAL_STATE(STATE)    (g_CurrentState & STATE)
+#define EVAL_STATE(reg, STATE)    (reg & STATE)
 
 /**********************************************************************
 ** ____ _  _ _  _ ____ ___ _ ____ _  _ ____
