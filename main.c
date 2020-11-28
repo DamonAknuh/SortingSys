@@ -147,7 +147,7 @@ int main(void)
         {
             PROCESS_STATE(SYSTEM_RAMP_STATE);
 
-            mTim3_DelayS(4);
+            mTim3_DelayS(5);
         }
 
     }
