@@ -2,12 +2,10 @@
 # MILESTONE:    5
 # PROGRAM:      Final Project
 # PROJECT:      Conveyor Belt System
-# GROUP:        10
+# GROUP:        B01: 10 * (group 1 in one drive)
 # NAME 1:       Damon, Hunka,            V00863155
-# NAME 2:       Matt,  MacLeod,            V00868600
+# NAME 2:       Matt,  MacLeod,          V00868600
 # DESC:         This program is the demo for the DC motor controller
-# DATA
-# REVISED
 ########################################################################*/
 
 /**********************************************************************
@@ -101,8 +99,6 @@ int main(void)
             DBG_DISPLAY_STATE_LCD(SYSTEM_PAUSE_STATE);
 
             SystemEndState();
-
-            TRIGGER_STATE(IDLE_STATE);
         }
 
         if (EVAL_STATE(shadowState, POS_TRAY_HARD))
@@ -135,15 +131,6 @@ int main(void)
             NewObjState();
         }
 
-        if (EVAL_STATE(shadowState, IDLE_STATE))
-        {
-            DBG_DISPLAY_STATE_LCD(IDLE_STATE);
-
-            PROCESS_STATE(IDLE_STATE);
-
-            IdleState();
-        }
-        
         if (EVAL_STATE(shadowState, INIT_STATE))
         {
             DBG_DISPLAY_STATE_LCD(INIT_STATE);
@@ -152,8 +139,6 @@ int main(void)
             PROCESS_STATE(INIT_STATE);
 
             InitState();
-
-            TRIGGER_STATE(IDLE_STATE);
         }
     }
 

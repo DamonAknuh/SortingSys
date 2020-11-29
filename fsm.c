@@ -5,7 +5,6 @@
  *  Author: hunka
  */ 
 
-
 #include <stdlib.h> // the header of the general-purpose standard library of C programming language
 #include <avr/io.h>// the header of I/O port
 #include <avr/interrupt.h>
@@ -47,19 +46,6 @@ uint8_t s_ObjectTracking[NUMBER_OF_OBJ_TYPES];
 **  ______|    |    |     |    |    |______ ______|
 ** 
 ***********************************************************************/
-
-/**********************************************************************
-** _ ___  _    ____     ____ ___ ____ ___ ____ 
-** | |  \ |    |___     [__   |  |__|  |  |___ 
-** | |__/ |___ |___ ___ ___]  |  |  |  |  |___ 
-**                                          
-***********************************************************************/
-void IdleState()
-{
-    // == > Turn the DC motor back on: Counter Clockwise
-    PORTB =  DC_MOTOR_CCW;
-}
-
 /**********************************************************************
 **  _ _  _ _ ___     ____ ___ ____ ___ ____ 
 **  | |\ | |  |      [__   |  |__|  |  |___ 
@@ -93,6 +79,9 @@ void InitState()
     s_ObjectTracking[ALUM_TYPE]  =0;
     s_ObjectTracking[WHITE_TYPE] =0;
     s_ObjectTracking[STEEL_TYPE] =0;
+
+    // == > Turn the motor on
+    PORTB = DC_MOTOR_CCW;
 }
 
 /**********************************************************************
@@ -116,25 +105,25 @@ void ClassifyState()
     if (NULL != currentNode)
     {
         // == > Classify the objects based on threshold values. increment the tracking. Update LCD
-        if ( ALUM_TH_MAX >= shadowADCResult)
+        if (shadowADCResult <= ALUM_TH_MAX)
         {
             currentNode->data.type = ALUM_TYPE;
         }
-        else if((STEEL_TH_MIN <= shadowADCResult) && (STEEL_TH_MAX >= shadowADCResult))
+        else if((STEEL_TH_MIN <= shadowADCResult) && (shadowADCResult <= STEEL_TH_MAX))
         {
             currentNode->data.type = STEEL_TYPE;
         }
-        else if((BLACK_TH_MIN <= shadowADCResult) && (BLACK_TH_MAX >= shadowADCResult))
+        else if((BLACK_TH_MIN <= shadowADCResult) && (shadowADCResult <= BLACK_TH_MAX))
         {
             currentNode->data.type = BLACK_TYPE;
         }
-        else if((WHITE_TH_MIN <= shadowADCResult) && (WHITE_TH_MAX >= shadowADCResult))
+        else if((WHITE_TH_MIN <= shadowADCResult) && (shadowADCResult <= WHITE_TH_MAX))
         {
             currentNode->data.type = WHITE_TYPE;
         }
-        else
+        else // == > if not any of these then sort as BLACK. 
         {
-            s_ObjectTracking[BLACK_TYPE]++;
+            currentNode->data.type = BLACK_TYPE;
         }
     }
 }
@@ -173,9 +162,10 @@ void PositionTrayState()
 
     pNode_t headNode;
     int8_t  quadrantsToMove;
-    uint8_t nextQuadrant; 
-    // == > Keeps track of current quadrant persistent across function calls. 
-    static uint8_t prevQuadrant;
+    uint8_t nextObjectType; 
+
+    // == > Keeps track of current quadrant: persistent across function calls. 
+    static uint8_t prevObjectType;
 
     // == > Dequeue the head node from the LinkedList. 
     DequeueHeadNode(&headNode);
@@ -184,44 +174,37 @@ void PositionTrayState()
     if (headNode != NULL)
     {
         // == > TYPE: STEEL = 00, ALUM = 01, WHITE = 10, BLACK = 11s
-        nextQuadrant = headNode->data.type;
+        nextObjectType = headNode->data.type;
 
         // == > Increment the tracking for each object when sorting
-        s_ObjectTracking[nextQuadrant]++;
+        s_ObjectTracking[nextObjectType]++;
 
         // == > if not already on quadrant need to move stepper. 
-        if (nextQuadrant != prevQuadrant)
+        if (nextObjectType != prevObjectType)
         {
             // == > Grab the tray motor from the constant table above. 
-            quadrantsToMove = s_trayTransitionTable[prevQuadrant][nextQuadrant];
+            quadrantsToMove = s_trayTransitionTable[prevObjectType][nextObjectType];
 
             // == > Move stepper motor.
             STMotorMove((quadrantsToMove > 0), abs(quadrantsToMove)); 
 
-            // == > Update PrevQudrant for next function call
-            prevQuadrant =  nextQuadrant; 
+            // == > Update variable for next function call
+            prevObjectType =  nextObjectType; 
         }
 
-        // == > If Ramping state is set then reset the timer
+        // == > If Ramping state is set then reset the watchdog timer
         if (EVAL_STATE(g_CurrentState, SYSTEM_RAMP_STATE))
         {
-            // == > Reset the Ramp Down clock. 
-            mTim3_DelayS(RAMP_DELAY_S);
+            // == > Reset the Ramp Down watchdog clock. 
+            mTim3_SetWatchDogS(RAMP_DELAY_S);
         }
-        else
-        {
-            // == > Trigger IDLE_STATE which will turn the motor back on. 
-            TRIGGER_STATE(IDLE_STATE);
-        }
-
+        
         // == > Finished Processing Node: free it. 
         free(headNode);
     }
-    else // == > Nothing on the list, resume idle state. 
-    {
-        TRIGGER_STATE(IDLE_STATE);
-    }
-    
+
+    // == > Turn the motor back on.
+    PORTB = DC_MOTOR_CCW;
 }
 
 /******************************************************************************************
@@ -233,15 +216,14 @@ void PositionTrayState()
 
 void SystemEndState()
 {
-
     // == > Turn Off DC Motor 
-    PORTB =  DC_MOTOR_OFF;
+    PORTB =  DC_MOTOR_BRAKE;
 
     // == > Hold brake high for 20 MS
-    mTim1_DelayMs(20);
+    mTim1_DelayMs(500);
 
     // == > Turn off DC Motor 
-    PORTB =  0b0000;
+    PORTB =  DC_MOTOR_OFF;
 
     // == > Display PAUSE STATE Statistics
     LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "PAUSE");
@@ -259,4 +241,7 @@ void SystemEndState()
 
     // == > Reset LCD display
     LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "-----");
+
+    // == > Turn the motor back on.
+    PORTB = DC_MOTOR_CCW;
 }

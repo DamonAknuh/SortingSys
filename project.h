@@ -13,13 +13,11 @@
 #include <stdbool.h>
 
 /**********************************************************************
-** ___  ____ ____ _ _  _ ____ ____
-** |  \ |___ |___ | |\ | |___ [__
-** |__/ |___ |    | | \| |___ ___]
-**
+** ____ ____ _  _ ____ _ ____ _  _ ____ ____ ___ _ ____ _  _ ____ 
+** |    |  | |\ | |___ | | __ |  | |__/ |__|  |  | |  | |\ | [__  
+** |___ |__| | \| |    | |__] |__| |  \ |  |  |  | |__| | \| ___] 
+**                                                                
 ***********************************************************************/
-
-
 //===============> Configuration switches.
 
 //        ENABLE_SMALL_STEPPER == true for small stepper values
@@ -35,8 +33,16 @@
 //        ENABLE_DEBUG_BUILD == false to enable production builds for best performance
 #define ENABLE_DEBUG_BUILD      (0)
 
-#if ENABLE_DEBUG_BUILD
 
+/**********************************************************************
+** ___  ____ ____ _ _  _ ____ ____
+** |  \ |___ |___ | |\ | |___ [__
+** |__/ |___ |    | | \| |___ ___]
+** 
+***********************************************************************/
+
+#if ENABLE_DEBUG_BUILD
+ 
  #define DBG_DISPLAY_STATE_LCD(STATE)                                           \
     do                                                                          \
     {                                                                           \
@@ -51,29 +57,17 @@
     while(0)
 #else
  #define DBG_DISPLAY_LCD(X,Y,VAL,SIZE)
- #define DBG_DISPLAY_STATE(STATE) 
+ #define DBG_DISPLAY_STATE_LCD(STATE) 
 #endif // ENABLE_DEBUG_BUILD
-
-#define DISPLAY_DELAY_MS        (250)
-
-#if     ENABLE_SMALL_STEPPER  
- #define MOTOR_START_DELAY_MS    (35)
- #define MOTOR_END_DELAY_MS      (20)
-#else // !ENABLE_SMALL_STEPPER
- #define MOTOR_START_DELAY_MS    (20)
- #define MOTOR_END_DELAY_MS      (2)
-#endif // !ENABLE_SMALL_STEPPER
 
 #define DC_MOTOR_SPEED          (0x70)
 
 #define DEBOUNCE_DELAY_MS       (50)
 #define RAMP_DELAY_S            (5)
 
-#define KILL_SWITCH_BIT         (0b1)
-#define MOTOR_CONTR_BIT         (0b10)
-
 #define DC_MOTOR_CCW            (0b0111)
-#define DC_MOTOR_OFF            (0b1111)
+#define DC_MOTOR_BRAKE          (0b1111)
+#define DC_MOTOR_OFF            (0b0000)
 
 #define OI_SENSOR_PIN           (0b0001)    // PD0 - Active low
 #define HE_SENSOR_PIN           (0b0010)    // PD1 - Active low
@@ -83,30 +77,32 @@
 #define SYS_PAUSE_PIN           (0b00010000)// PE4 - Active Low
 #define SYS_RAMP_PIN            (0b00100000)// PE5 - Active Low
 
-#define ST_MOTOR_CCW            (1)
-#define ST_MOTOR_CW             (!ST_MOTOR_CCW)
-
+// == > ALUM TYPE INFORMATION
 #define ALUM_TYPE               (1) 
 #define ALUM_TH_MIN             (0)
 #define ALUM_TH_MAX             (255)
 
+// == > STEEL TYPE INFORMATION
 #define STEEL_TYPE              (3)  
 #define STEEL_TH_MIN            (400)
 #define STEEL_TH_MAX            (700)
 
+// == > WHITE TYPE INFORMATION
 #define WHITE_TYPE              (2) 
 #define WHITE_TH_MIN            (900)
 #define WHITE_TH_MAX            (950)
 
+// == > BLACK TYPE INFORMATION
 #define BLACK_TYPE              (0) 
 #define BLACK_TH_MIN            (956)
 #define BLACK_TH_MAX            (1026)
 
-#define NUMBER_OF_OBJ_TYPES		(4)
+#define NUMBER_OF_OBJ_TYPES     (4)
 
 #define REL_SENSOR_MAX          (BLACK_TH_MAX)
 #define MIN_ADC_SAMPLES         (50)
 
+// ================= > LCD DISPLAY DEFINES
 #define CURSOR_TOP_LINE         (0)
 #define CURSOR_BOT_LINE         (1)
 
@@ -119,15 +115,14 @@
 #define ADC_RST_CURSOR          (5)
 #define ADC_RST_CURSOR_SIZE     (5)
 
-
-#define ALUM_CURSOR             (4)
 #define STEEL_CURSOR            (0)
+#define ALUM_CURSOR             (4)
 #define BLACK_CURSOR            (8)
 #define WHITE_CURSOR            (12)
 
 #define OBJ_TYPES_CURSOR_SIZE   (2)
 
-
+// == > UTIL MACROS
 #define MIN(x, y)                      (y < x ? y : x)
 #define COMPILE_VERIFY(EXPR, LINE)    typedef char ERROR_ ## LINE [EXPR ? 1 : -1]
 
@@ -152,21 +147,18 @@ extern volatile uint16_t g_Tim3MaxS;
 ** |    |__| | \| |___  |  | |__| | \| ___]
 **
 ***********************************************************************/
-void Project_ErrorState(void);
-
 
 void mTim0PWM_Init(void);
 void mTim1_Init(void);
 void mTim3_Init(void);
 void mTim1_DelayMs(uint32_t count);
 void mTim_DelayUs(double count);
-void mTim3_DelayS(uint16_t count);
+void mTim3_SetWatchDogS(uint16_t count);
 
 void mGPIO_Init(void);
 void mADC1_Init(void);
 
 void STMotorMove(bool dirCW, uint8_t quadrants);
-
 void mTray_Init(void);
 
 #endif /* PROJECT_H_ */

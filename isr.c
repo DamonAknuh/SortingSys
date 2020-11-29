@@ -127,7 +127,7 @@ ISR(INT3_vect)
     if ((PIND & EX_SENSOR_PIN) == 0x00)
     {
         // == > Brake the DC motor to VCC
-        PORTB =  DC_MOTOR_OFF;
+        PORTB =  DC_MOTOR_BRAKE;
 
         TRIGGER_STATE(POS_TRAY_HARD);
     }
@@ -146,7 +146,7 @@ ISR(INT4_vect)
     if ((PINE & SYS_PAUSE_PIN) == 0x00)
     {
         // == > Brake the DC motor to VCC
-        PORTB =  DC_MOTOR_OFF;
+        PORTB =  DC_MOTOR_BRAKE;
 
         // == > Toggle the SYSTEM_PAUSE_STATE to turn it on and off. 
         TOGGLE_STATE(SYSTEM_PAUSE_STATE);
@@ -164,7 +164,8 @@ ISR(INT5_vect)
 {
     if ((PINE & SYS_RAMP_PIN) == 0x00)
     {
-        mTim3_DelayS(RAMP_DELAY_S);
+        TRIGGER_STATE(SYSTEM_RAMP_STATE);
+        mTim3_SetWatchDogS(RAMP_DELAY_S);
     }
 }
 
@@ -213,6 +214,10 @@ ISR(TIMER3_COMPA_vect)
     {
         // == > Have not processed an item in N seconds proceed to SYSTEM_PAUSE_STATE
         TRIGGER_STATE(SYSTEM_PAUSE_STATE);
+
+        // == > Completed System Ramp so deassert the ramp state. 
+        PROCESS_STATE(SYSTEM_RAMP_STATE);
+        
         // == > Interrupt Functionality complete can desassert this timer interrupt
         TIMSK3 &= ~_BV(OCIE3A);
     }

@@ -87,7 +87,7 @@ void mTim3_Init()
 }
 
 // == > Interrupt Driven Timer 3
-void mTim3_DelayS(uint16_t count)
+void mTim3_SetWatchDogS(uint16_t count)
 {
     // == > Reset the global variables associated with Tim3Seconds
     g_Tim3CounterS = 0; 

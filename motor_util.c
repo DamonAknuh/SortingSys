@@ -30,6 +30,14 @@ volatile uint8_t  g_HomingFlag;
 
 #if ENABLE_SMALL_STEPPER
 
+ #define MOTOR_START_DELAY_MS    (35)
+ #define MOTOR_END_DELAY_MS      (20)
+ #define MOTOR_STEPS_REV        (2048)
+ #define MOTOR_QUARTER_STEPS    (MOTOR_STEPS_REV / 4)
+ #define MOTOR_RAMP_STEPS       (MOTOR_QUARTER_STEPS / 3)
+ #define MOTOR_CONS_STEPS       (MOTOR_RAMP_STEPS)
+ #define MOTOR_RAMP_CONS        (MOTOR_RAMP_STEPS + MOTOR_CONS_STEPS)  
+
 // Small Stepper step table
 const uint8_t s_motorStepTable[] = 
 {
@@ -39,12 +47,6 @@ const uint8_t s_motorStepTable[] =
     0b000101
 };
 
- #define MOTOR_STEPS_REV        (2048)
- #define MOTOR_QUARTER_STEPS    (MOTOR_STEPS_REV / 4)
- #define MOTOR_RAMP_STEPS       (MOTOR_QUARTER_STEPS / 3)
- #define MOTOR_CONS_STEPS       (MOTOR_RAMP_STEPS)
- #define MOTOR_RAMP_CONS        (MOTOR_RAMP_STEPS + MOTOR_CONS_STEPS)  
-
 inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
 {
     mTim1_DelayMs(MOTOR_START_DELAY_MS);
@@ -52,8 +54,16 @@ inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
 
 #elif !ENABLE_SMALL_STEPPER 
 
+ #define MOTOR_START_DELAY_MS   (20)
+ #define MOTOR_END_DELAY_MS     (4)
+ #define MOTOR_STEPS_REV        (200)
+ #define MOTOR_QUARTER_STEPS    (MOTOR_STEPS_REV / 4)
+ #define MOTOR_RAMP_STEPS       (15)
+ #define MOTOR_CONS_STEPS       (30)
+ #define MOTOR_RAMP_CONS        (MOTOR_RAMP_STEPS + MOTOR_CONS_STEPS)  
+
 // Large Stepper step table
-const uint8_t s_motorStepTable[] =fs
+const uint8_t s_motorStepTable[] =
 {
 // == > 2 Phase Full Stepper motor operation
     0b110101,   // 0b000101 | 0b110000
@@ -62,23 +72,17 @@ const uint8_t s_motorStepTable[] =fs
     0b101101,   // 0b101000 | 0b000101
 };
 
- #define MOTOR_STEPS_REV        (200)
- #define MOTOR_QUARTER_STEPS    (MOTOR_STEPS_REV / 4)
- #define MOTOR_RAMP_STEPS       (15)
- #define MOTOR_CONS_STEPS       (30)
- #define MOTOR_RAMP_CONS        (MOTOR_RAMP_STEPS + MOTOR_CONS_STEPS)  
 
-
+// == > Store the information for the ST motor profiler
 const uint8_t s_profilerStepLimits[2][3] = 
- {
-    {16,  45,   43},    
-    {16,  95,   93}
- };
-
+{
+    {16,  45,   43},    // PROFILE 1 for moving only 1 quadrant
+    {16,  95,   93}     // PROFILE 2 for moving 2 quadrants
+};
 
 inline void STMotorDelayProfile(uint32_t stepNum, uint8_t profile)
 {
-#if !ENABLE_MOTOR_PROFILE
+ #if !ENABLE_MOTOR_PROFILE
     // == > Trapezoidal Acceleration Profiling.
     if (stepNum < s_profilerStepLimits[profile][0])
     {
@@ -92,9 +96,9 @@ inline void STMotorDelayProfile(uint32_t stepNum, uint8_t profile)
     {
         mTim1_DelayMs(3 * (stepNum - s_profilerStepLimits[profile][2]));
     }
-#else 
+ #else 
     mTim1_DelayMs(MOTOR_START_DELAY_MS);
-#endif // ENABLE_MOTOR_PROFILE
+ #endif // ENABLE_MOTOR_PROFILE
 }
 
 #endif // ENABLE_SMALL_STEPPER
@@ -123,11 +127,10 @@ void STMotorMove(bool dirCW, uint8_t quadrants)
             // the steps in the step table (1,2,3,4,1,2...) to turn motor CW
             PORTA = s_motorStepTable[(s_CurrentMotorStep + i) % SIZEOF_MOTOR_TABLE];
 
-            STMotorDelayProfile(i, quadrants -1);
+            STMotorDelayProfile(i, quadrants - 1);
         }
 
         s_CurrentMotorStep = ((s_CurrentMotorStep + i - 1) % SIZEOF_MOTOR_TABLE);
-
     }
     else if (!dirCW)
     {
@@ -139,7 +142,7 @@ void STMotorMove(bool dirCW, uint8_t quadrants)
             // Reverse the steps in the step table (4,3,2,1,4,3...) to turn motor CCW
             PORTA = s_motorStepTable[3 -  ((s_CurrentMotorStep + i ) % SIZEOF_MOTOR_TABLE)];
 
-            STMotorDelayProfile(i, quadrants);
+            STMotorDelayProfile(i, quadrants - 1);
         }
 
         s_CurrentMotorStep = 3 - ((s_CurrentMotorStep + i - 1) % SIZEOF_MOTOR_TABLE);
