@@ -26,10 +26,11 @@
 **
 ***********************************************************************/
 
-static uint8_t s_PrevQuadrant;
-
+// == > Transition Table: This table contains a lookup table of all the tray 
+//                      movements from one quadrant to the next. 
+//                      negative values are CCW, positive are CW.
 const int8_t s_trayTransitionTable[NUMBER_OF_OBJ_TYPES][NUMBER_OF_OBJ_TYPES] =
-{ 
+{
 // Initial -->  0       1        2       3
 /*  0*/       { 0,      1,       2,     -1},
 /*  1*/       {-1,      0,       1,      2},
@@ -37,6 +38,7 @@ const int8_t s_trayTransitionTable[NUMBER_OF_OBJ_TYPES][NUMBER_OF_OBJ_TYPES] =
 /*  3*/       { 1,      2,      -1,      0}
 };
 
+// == > Tracks the number of objects of each type. 
 uint8_t s_ObjectTracking[NUMBER_OF_OBJ_TYPES];
 
 /**********************************************************************
@@ -54,9 +56,6 @@ uint8_t s_ObjectTracking[NUMBER_OF_OBJ_TYPES];
 ***********************************************************************/
 void IdleState()
 {
-#if ENABLE_DEBUG_BUILD
-    LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, IDLE_STATE, STATE_CURSOR_SIZE);
-#endif // ENABLE_DEBUG_BUILD
     // == > Turn the DC motor back on: Counter Clockwise
     PORTB =  DC_MOTOR_CCW;
 }
@@ -70,33 +69,26 @@ void IdleState()
 
 void InitState()
 {
-
     LCDClear(); 
-    LCDWriteStringXY(0, 0,"Homing...");
 
     // == > Initialize the tray on the starting position. 
     mTray_Init();
-
-    LCDClear(); 
     
-    LCDWriteStringXY(0, 0, "Homed!");
     mTim1_DelayMs(750);
 
-    LCDWriteStringXY(0, CURSOR_TOP_LINE, "L:--|-----|S:---");
-    LCDWriteStringXY(0, CURSOR_BOT_LINE, "00S|00A|00B|00W");
-    
-    // == > Turn off Interrupt Associated with Hall Effect Sensor.
-    EIMSK &= ~_BV(INT1);
+    LCDWriteStringXY(0, CURSOR_TOP_LINE, "L:??|-----|S:???");
+    LCDWriteStringXY(0, CURSOR_BOT_LINE, "??S|??A|??B|??W");
 
-    // todo: see if clearQ imp is good for null Qs
+    // == > Clear the Queue
     ClearQueue();
 
     // == > Initialize Global Variables
     g_RefOBjectAtSensor = 0; 
     g_ADCSample         = 0xFFFF;
     g_ADCCounter        = 0; 
+    g_HomingFlag        = 0; 
 
-
+    // == > Reset the object tracking information
     s_ObjectTracking[BLACK_TYPE] =0;
     s_ObjectTracking[ALUM_TYPE]  =0;
     s_ObjectTracking[WHITE_TYPE] =0;
@@ -115,10 +107,7 @@ void ClassifyState()
     pNode_t  currentNode;
     uint16_t shadowADCResult = g_ADCMinResult;
 
-#if ENABLE_DEBUG_BUILD
-    LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, CLASS_STATE, STATE_CURSOR_SIZE);
-    LCDWriteIntXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, shadowADCResult, ADC_RST_CURSOR_SIZE);
-#endif // ENABLE_DEBUG_BUILD
+    DBG_DISPLAY_LCD(ADC_RST_CURSOR, CURSOR_TOP_LINE, shadowADCResult, ADC_RST_CURSOR_SIZE);
 
     // == > Dequeue the current node from the LL. 
     DequeueCurrentNode(&currentNode);
@@ -159,10 +148,7 @@ void ClassifyState()
 
 void NewObjState()
 {
-#if ENABLE_DEBUG_BUILD
-    LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, NEW_OBJ_STATE, STATE_CURSOR_SIZE);
-    LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList() + 1, OBJECTS_CURSOR_SIZE);
-#endif // ENABLE_DEBUG_BUILD
+    DBG_DISPLAY_LCD(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList() + 1, OBJECTS_CURSOR_SIZE);
 
     pNode_t newNode; 
 
@@ -183,14 +169,13 @@ void NewObjState()
 
 void PositionTrayState()
 {
-#if ENABLE_DEBUG_BUILD
-    LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, POS_TRAY_HARD, 3);
-    LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList() - 1, OBJECTS_CURSOR_SIZE);
-#endif // ENABLE_DEBUG_BUILD
+    DBG_DISPLAY_LCD(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList() - 1, OBJECTS_CURSOR_SIZE);
 
     pNode_t headNode;
     int8_t  quadrantsToMove;
     uint8_t nextQuadrant; 
+    // == > Keeps track of current quadrant persistent across function calls. 
+    static uint8_t prevQuadrant;
 
     // == > Dequeue the head node from the LinkedList. 
     DequeueHeadNode(&headNode);
@@ -198,36 +183,41 @@ void PositionTrayState()
     // == > Check if node is NULL. 
     if (headNode != NULL)
     {
-        // TYPE: STEEL = 00, ALUM = 01, WHITE = 10, BLACK = 11s
+        // == > TYPE: STEEL = 00, ALUM = 01, WHITE = 10, BLACK = 11s
         nextQuadrant = headNode->data.type;
 
+        // == > Increment the tracking for each object when sorting
         s_ObjectTracking[nextQuadrant]++;
 
         // == > if not already on quadrant need to move stepper. 
-        if (nextQuadrant != s_PrevQuadrant)
+        if (nextQuadrant != prevQuadrant)
         {
             // == > Grab the tray motor from the constant table above. 
-            quadrantsToMove = s_trayTransitionTable[s_PrevQuadrant][nextQuadrant];
+            quadrantsToMove = s_trayTransitionTable[prevQuadrant][nextQuadrant];
 
             // == > Move stepper motor.
             STMotorMove((quadrantsToMove > 0), abs(quadrantsToMove)); 
 
-            s_PrevQuadrant =  nextQuadrant; 
+            // == > Update PrevQudrant for next function call
+            prevQuadrant =  nextQuadrant; 
         }
 
         // == > If Ramping state is set then reset the timer
         if (EVAL_STATE(g_CurrentState, SYSTEM_RAMP_STATE))
         {
-            TRIGGER_STATE(SYSTEM_RAMP_STATE);
+            // == > Reset the Ramp Down clock. 
+            mTim3_DelayS(RAMP_DELAY_S);
         }
         else
         {
+            // == > Trigger IDLE_STATE which will turn the motor back on. 
             TRIGGER_STATE(IDLE_STATE);
         }
+
         // == > Finished Processing Node: free it. 
         free(headNode);
     }
-    else
+    else // == > Nothing on the list, resume idle state. 
     {
         TRIGGER_STATE(IDLE_STATE);
     }
@@ -243,27 +233,30 @@ void PositionTrayState()
 
 void SystemEndState()
 {
-    
 
-#if ENABLE_DEBUG_BUILD
-    LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, SYSTEM_PAUSE_STATE, STATE_CURSOR_SIZE);
-    LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList(), OBJECTS_CURSOR_SIZE);
-#endif // ENABLE_DEBUG_BUILD
+    // == > Turn Off DC Motor 
+    PORTB =  DC_MOTOR_OFF;
+
+    // == > Hold brake high for 20 MS
+    mTim1_DelayMs(20);
+
+    // == > Turn off DC Motor 
+    PORTB =  0b0000;
+
+    // == > Display PAUSE STATE Statistics
     LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "PAUSE");
+    // == > Display number of items on conveyor. 
     LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList(), OBJECTS_CURSOR_SIZE);
-    LCDWriteIntXY(ALUM_CURSOR, CURSOR_BOT_LINE,  s_ObjectTracking[ALUM_TYPE], OBJ_TYPES_CURSOR_SIZE);
+    
+    // == > Display number each type of object on bottom line. 
+    LCDWriteIntXY(ALUM_CURSOR, CURSOR_BOT_LINE,  s_ObjectTracking[ALUM_TYPE],  OBJ_TYPES_CURSOR_SIZE);
     LCDWriteIntXY(STEEL_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[STEEL_TYPE], OBJ_TYPES_CURSOR_SIZE);
     LCDWriteIntXY(BLACK_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[BLACK_TYPE], OBJ_TYPES_CURSOR_SIZE);
     LCDWriteIntXY(WHITE_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[WHITE_TYPE], OBJ_TYPES_CURSOR_SIZE);
 
-    // Turn Off DC Motor (todo brake to high VCC or turn off bottom bits )
-    PORTB =  DC_MOTOR_OFF;
-
-    mTim1_DelayMs(20);
-
-    PORTB =  0b0000;
-
+    // == > Hold this state untill the state has been deasserted elsewhere. 
     while(EVAL_STATE(g_CurrentState, SYSTEM_PAUSE_STATE));
 
+    // == > Reset LCD display
     LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "-----");
 }

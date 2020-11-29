@@ -55,7 +55,7 @@ void LCDByte(uint8_t cmd,uint8_t isData)
         SET_RS();
     }
 
-    mTim1_DelayUs(0.5);		//tAS
+    mTim_DelayUs(0.5);		//tAS
 
     SET_E();
 
@@ -64,14 +64,14 @@ void LCDByte(uint8_t cmd,uint8_t isData)
     temp = (LCD_DATA_PORT & 0XF0) | (highNibble);
     LCD_DATA_PORT=temp;
 
-    mTim1_DelayUs(1);			//tEH
+    mTim_DelayUs(1);			//tEH
 
 
     //Now data lines are stable pull E low for transmission
 
     CLEAR_E();
 
-    mTim1_DelayUs(1);
+    mTim_DelayUs(1);
 
     //Send the lower nibble
     SET_E();
@@ -80,14 +80,14 @@ void LCDByte(uint8_t cmd,uint8_t isData)
 
     LCD_DATA_PORT=temp;
 
-    mTim1_DelayUs(1);			//tEH
+    mTim_DelayUs(1);			//tEH
                                 //Do not wait too long, 1 us is good
 
     //SEND
 
     CLEAR_E();
 
-    mTim1_DelayUs(1);			//tEL
+    mTim_DelayUs(1);			//tEL
 
     LCDBusyLoop();
 }
@@ -108,26 +108,26 @@ void LCDBusyLoop()
 	CLEAR_RS();		//Read status
 
 	//Let the RW/RS lines stabilize
-	mTim1_DelayUs(0.5);		//tAS
+	mTim_DelayUs(0.5);		//tAS
 	
 	do
 	{
 		SET_E();
 
 		//Wait tDA for data to become available
-		mTim1_DelayUs(0.5);
+		mTim_DelayUs(0.5);
 		
 		status  = LCD_DATA_PIN;
 		status  = status << 4;
 
-		mTim1_DelayUs(0.5);
+		mTim_DelayUs(0.5);
 		
 		//Pull E low
 		CLEAR_E();
-		mTim1_DelayUs(1);	//tEL
+		mTim_DelayUs(1);	//tEL
 		
 		SET_E();
-		mTim1_DelayUs(0.5);
+		mTim_DelayUs(0.5);
 		
 		temp    = LCD_DATA_PIN;
 		temp    &= 0x0F;
@@ -136,10 +136,10 @@ void LCDBusyLoop()
 
 		busy    = status & 0b10000000;
 
-		mTim1_DelayUs(0.5);
+		mTim_DelayUs(0.5);
 		
 		CLEAR_E();
-		mTim1_DelayUs(1);	//tEL
+		mTim_DelayUs(1);	//tEL
 		
 	} while(busy);
 
@@ -178,14 +178,14 @@ void mLCD_Init(uint8_t style)
 	CLEAR_RS();
 
 	//Set 4-bit mode
-	mTim1_DelayUs(0.4);	//tAS
+	mTim_DelayUs(0.4);	//tAS
 	
 	SET_E();
 	LCD_DATA_PORT |= (0b00000010); //[B] To transfer 0b00100000 i was using LCD_DATA_PORT |= 0b00100000
-	mTim1_DelayUs(1);
+	mTim_DelayUs(1);
 	
 	CLEAR_E();
-	mTim1_DelayUs(1);
+	mTim_DelayUs(1);
 		
 	//Wait for LCD to execute the Functionset Command
 	LCDBusyLoop();                                    //[B] Forgot this delay

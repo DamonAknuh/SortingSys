@@ -18,15 +18,41 @@
 ** |__/ |___ |    | | \| |___ ___]
 **
 ***********************************************************************/
-#define ENABLE_DEBUG_BUILD      (0)
 
-#define ENABLE_ALL_SENSORS      (0)
-// Configuration switch.
+
+//===============> Configuration switches.
+
 //        ENABLE_SMALL_STEPPER == true for small stepper values
 //        ENABLE_SMALL_STEPPER == false for lab stepper values
 #define ENABLE_SMALL_STEPPER    (0)
 
+//        ENABLE_MOTOR_PROFILE == true to enable delay profiling for stepper
+//        ENABLE_MOTOR_PROFILE == false to have constant delay for stepper
 #define ENABLE_MOTOR_PROFILE    (0)
+
+
+//        ENABLE_DEBUG_BUILD == true to enable debug builds, debug builds output further information to LCD.
+//        ENABLE_DEBUG_BUILD == false to enable production builds for best performance
+#define ENABLE_DEBUG_BUILD      (0)
+
+#if ENABLE_DEBUG_BUILD
+
+ #define DBG_DISPLAY_STATE_LCD(STATE)                                           \
+    do                                                                          \
+    {                                                                           \
+        LCDWriteIntXY(STATE_CURSOR, CURSOR_TOP_LINE, STATE, STATE_CURSOR_SIZE); \
+    }                                                                           \
+    while(0)
+ #define DBG_DISPLAY_LCD(X,Y,VAL,SIZE)                                          \
+    do                                                                          \
+    {                                                                           \
+        LCDWriteIntXY(X, Y, VAL, SIZE);                                         \
+    }                                                                           \
+    while(0)
+#else
+ #define DBG_DISPLAY_LCD(X,Y,VAL,SIZE)
+ #define DBG_DISPLAY_STATE(STATE) 
+#endif // ENABLE_DEBUG_BUILD
 
 #define DISPLAY_DELAY_MS        (250)
 
@@ -40,7 +66,8 @@
 
 #define DC_MOTOR_SPEED          (0x70)
 
-#define DEBOUNCE_DELAY_MS       (75)
+#define DEBOUNCE_DELAY_MS       (50)
+#define RAMP_DELAY_S            (5)
 
 #define KILL_SWITCH_BIT         (0b1)
 #define MOTOR_CONTR_BIT         (0b10)
@@ -116,8 +143,8 @@ extern volatile uint8_t  g_RefOBjectAtSensor;
 extern volatile uint16_t g_ADCMinResult;
 extern volatile uint16_t g_ADCSample;
 extern volatile uint32_t g_ADCCounter; 
-extern volatile uint16_t g_Tim3Seconds; 
-extern volatile uint16_t g_Tim3SecondsMax;
+extern volatile uint16_t g_Tim3CounterS; 
+extern volatile uint16_t g_Tim3MaxS;
 
 /**********************************************************************
 ** ____ _  _ _  _ ____ ___ _ ____ _  _ ____
@@ -132,7 +159,7 @@ void mTim0PWM_Init(void);
 void mTim1_Init(void);
 void mTim3_Init(void);
 void mTim1_DelayMs(uint32_t count);
-void mTim1_DelayUs(double count);
+void mTim_DelayUs(double count);
 void mTim3_DelayS(uint16_t count);
 
 void mGPIO_Init(void);

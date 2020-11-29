@@ -48,10 +48,10 @@ ISR(INT0_vect)
 {
     if ((PIND & OI_SENSOR_PIN) == 0x00)
     {
+        // == > Trigger the NEW_OBJ_STATE to run in the FSM. 
         TRIGGER_STATE(NEW_OBJ_STATE);
     }
 }
-
 
 /******************************************************************************************
 ** _ _  _ ___     _  _ ____ ____ ___     _  _ ____ 
@@ -65,8 +65,6 @@ ISR(INT1_vect)
 {
     // == > Trigger the stepper motor to stop when homed.  
     g_HomingFlag = 1; 
-    // == > Disable the HE sensor interrupt from firing again. 
-    EIMSK &= ~_BV(INT1);
 }   
 
 
@@ -95,7 +93,7 @@ ISR(INT2_vect)
     {
         // == > Set Global bool for object at sensor to be false
         ADCSRA &= ~_BV(ADIE);  // ==> Enable ADC
-        ADCSRA |= _BV(ADIF);   // ==> Clear Flag in Interrupt
+        ADCSRA |=  _BV(ADIF);  // ==> Clear Flag in Interrupt
 
         // == > Save the objects minimum ADC result for processing. 
         g_ADCMinResult = g_ADCSample;
@@ -107,6 +105,7 @@ ISR(INT2_vect)
     } 
     else    // == > Bad Reading: Not enough samples to classify object. 
     {
+        // == > Clear Counter
         g_ADCCounter = 0;
 
         // == > Set Global bool for object at sensor to be false
@@ -143,12 +142,13 @@ ISR(INT3_vect)
 // == > System Pause Button: Pause system (Active Low)
 ISR(INT4_vect)
 {
-    mTim1_DelayMs(50);
+    mTim1_DelayMs(DEBOUNCE_DELAY_MS);
     if ((PINE & SYS_PAUSE_PIN) == 0x00)
     {
         // == > Brake the DC motor to VCC
         PORTB =  DC_MOTOR_OFF;
 
+        // == > Toggle the SYSTEM_PAUSE_STATE to turn it on and off. 
         TOGGLE_STATE(SYSTEM_PAUSE_STATE);
     }
 }
@@ -164,7 +164,7 @@ ISR(INT5_vect)
 {
     if ((PINE & SYS_RAMP_PIN) == 0x00)
     {
-        TRIGGER_STATE(SYSTEM_RAMP_STATE);
+        mTim3_DelayS(RAMP_DELAY_S);
     }
 }
 
@@ -203,14 +203,17 @@ ISR(ADC_vect)
 // ==> TIM 3 COMP A: Interrupt executed when timer counts 1 second. 
 ISR(TIMER3_COMPA_vect)
 {
-    if (g_Tim3Seconds < g_Tim3SecondsMax)
+    if (g_Tim3CounterS < g_Tim3MaxS)
     {
-        PORTC = g_Tim3Seconds;
-        g_Tim3Seconds++;  
+        // == > Increment Counter to keep track of number of seconds.
+        //      Each time this interrupt fires, another second has passed.  
+        g_Tim3CounterS++;  
     }
     else
     {
+        // == > Have not processed an item in N seconds proceed to SYSTEM_PAUSE_STATE
         TRIGGER_STATE(SYSTEM_PAUSE_STATE);
+        // == > Interrupt Functionality complete can desassert this timer interrupt
         TIMSK3 &= ~_BV(OCIE3A);
     }
 }

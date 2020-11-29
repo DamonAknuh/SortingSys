@@ -53,20 +53,13 @@ inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
 #elif !ENABLE_SMALL_STEPPER 
 
 // Large Stepper step table
-const uint8_t s_motorStepTable[] =
+const uint8_t s_motorStepTable[] =fs
 {
-#if ENABLE_MOTOR_PROFILE
-    0b110000,
-    0b000110,
-    0b101000,
-    0b000101
-#else
 // == > 2 Phase Full Stepper motor operation
     0b110101,   // 0b000101 | 0b110000
     0b110110,   // 0b110000 | 0b000110
     0b101110,   // 0b000110 | 0b101000
     0b101101,   // 0b101000 | 0b000101
-#endif // ENABLE_MOTOR_PROFILE
 };
 
  #define MOTOR_STEPS_REV        (200)
@@ -158,16 +151,28 @@ void mTray_Init(void)
 {
     uint16_t i;
 
+    // == > Ensure the interrupt for the HE sensor is ON. 
+    EIMSK |= _BV(INT1);
+
+    // == > Display to LCD
+    LCDWriteStringXY(0, 0,"Homing...");
+
     s_CurrentMotorStep++;
 
     for (i = 0; !g_HomingFlag; i++)
     {
         // the steps in the step table (1,2,3,4,1,2...) to turn motor CW
         PORTA = s_motorStepTable[(s_CurrentMotorStep + i) % SIZEOF_MOTOR_TABLE];
-        
+        // == > For Homing stage just use constant delay
         mTim1_DelayMs(MOTOR_START_DELAY_MS);
     }
 
     s_CurrentMotorStep = ((s_CurrentMotorStep + i - 1) % SIZEOF_MOTOR_TABLE);
+
+    // == > Turn off Interrupt Associated with Hall Effect Sensor.
+    EIMSK &= ~_BV(INT1);
+
+    // == > Display to LCD
+    LCDWriteStringXY(0, 0, "Homed!");
 }
 

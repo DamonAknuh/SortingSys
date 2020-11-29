@@ -98,6 +98,8 @@ int main(void)
 
         if (EVAL_STATE(shadowState, SYSTEM_PAUSE_STATE))
         {
+            DBG_DISPLAY_STATE_LCD(SYSTEM_PAUSE_STATE);
+
             SystemEndState();
 
             TRIGGER_STATE(IDLE_STATE);
@@ -105,6 +107,8 @@ int main(void)
 
         if (EVAL_STATE(shadowState, POS_TRAY_HARD))
         {
+            DBG_DISPLAY_STATE_LCD(POS_TRAY_HARD);
+
             // == > Positioning the object. Deassert the State
             PROCESS_STATE(POS_TRAY_HARD);
 
@@ -113,6 +117,8 @@ int main(void)
 
         if (EVAL_STATE(shadowState, CLASS_STATE))
         {
+            DBG_DISPLAY_STATE_LCD(CLASS_STATE);
+
             // == > Classifying the Object. Deassert the State
             PROCESS_STATE(CLASS_STATE);
 
@@ -121,6 +127,8 @@ int main(void)
 
         if (EVAL_STATE(shadowState, NEW_OBJ_STATE))
         {
+            DBG_DISPLAY_STATE_LCD(NEW_OBJ_STATE);
+
             // == > Processed new object deassert object
             PROCESS_STATE(NEW_OBJ_STATE);
 
@@ -129,12 +137,17 @@ int main(void)
 
         if (EVAL_STATE(shadowState, IDLE_STATE))
         {
+            DBG_DISPLAY_STATE_LCD(IDLE_STATE);
+
             PROCESS_STATE(IDLE_STATE);
 
             IdleState();
         }
+        
         if (EVAL_STATE(shadowState, INIT_STATE))
         {
+            DBG_DISPLAY_STATE_LCD(INIT_STATE);
+
             // == > Initialized System deassert object
             PROCESS_STATE(INIT_STATE);
 
@@ -142,14 +155,6 @@ int main(void)
 
             TRIGGER_STATE(IDLE_STATE);
         }
-
-        if (EVAL_STATE(shadowState, SYSTEM_RAMP_STATE))
-        {
-            PROCESS_STATE(SYSTEM_RAMP_STATE);
-
-            mTim3_DelayS(5);
-        }
-
     }
 
 }

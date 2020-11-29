@@ -16,8 +16,8 @@
 
 #include "project.h"
 
-volatile uint16_t g_Tim3Seconds; 
-volatile uint16_t g_Tim3SecondsMax;
+volatile uint16_t g_Tim3CounterS; 
+volatile uint16_t g_Tim3MaxS;
 
 /**********************************************************************
 ** ____ _  _ _  _ ____ ___ _ ____ _  _ ____
@@ -26,20 +26,31 @@ volatile uint16_t g_Tim3SecondsMax;
 **
 ***********************************************************************/
 
-void mTim1_DelayMs(uint32_t count)
+void mTim1_Init()
 {
-    uint32_t index = 0;
-    
+
     // == > Sets waveform Generation Bit Mode to PWM,
     //        CTC mode for count up (mode 4)
     //        TCCR = Timer Counter Control Register 1 B
     TCCR1B |= _BV(WGM12);
-    
+
     // == > Set Output Compare Register = 1000 cycles = 1ms = 0x03E8
     //        Value is continuous compared with counter value
     //        Match generates an Output compare interrupt.
     OCR1A = 0x03E8;
-    
+
+    // == > Set pre-scalar to 8 in B timer control register
+    // Need to transfer line to next file
+    // Timer Counter Control Register
+    TCCR1B |= _BV(CS11);
+
+}
+
+// == > Busy Wait Timer 1
+void mTim1_DelayMs(uint32_t count)
+{
+    uint32_t index = 0;
+
     // == > Set Timer Counter Initial Value = 0x0000
     TCNT1 &= 0x0;
     
@@ -60,40 +71,6 @@ void mTim1_DelayMs(uint32_t count)
     }
 }
 
-
-// 1 us timer for LCD 
-
-/* f = 16MHz Systtem clock/ 2 ( prescaler) 
-    T = 1/ f =  125 ns * 8 = 1 us 
-
-*/
-void mTim1_DelayUs(double count)
-{
-    uint32_t index = 0;
-    
-    while ( index < (8 * count))
-    {
-        index++;
-    }
-}
-
-
-void mTim3_DelayS(uint16_t count)
-{
-    g_Tim3Seconds = 0; 
-    g_Tim3SecondsMax = count;
-
-    // == > Set Timer Counter Initial Value = 0x0000
-    TCNT3 &= 0x0;
-    
-    // == > Timer Interrupt Flag Register:
-    //        OCF01 is cleared when writing the following statement.
-    //        Needs SW as flag is HW controlled, and needs SW toggle
-    TIFR3 |= ( 1 << OCF3A);
-
-    TIMSK3 |= (_BV(OCIE3A));
-}
-
 void mTim3_Init()
 {
     TCCR3B |= _BV(CS32) | _BV(CS30);
@@ -103,22 +80,32 @@ void mTim3_Init()
     //        TCCR = Timer Counter Control Register 1 B
     TCCR3B |= _BV(WGM12);
 
-
     // == > Set Output Compare Register = 1000 cycles = 1ms = 0x03E8
     //        Value is continuous compared with counter value
     //        Match generates an Output compare interrupt.
     OCR3A = 7812;
 }
 
-void mTim1_Init()
+// == > Interrupt Driven Timer 3
+void mTim3_DelayS(uint16_t count)
 {
-    // == > Set pre-scalar to 8 in B timer control register
-    // Need to transfer line to next file
-    // Timer Counter Control Register
-    TCCR1B |= _BV(CS11);
+    // == > Reset the global variables associated with Tim3Seconds
+    g_Tim3CounterS = 0; 
+    // == > Set max count to track
+    g_Tim3MaxS = count;
 
+    // == > Set Timer Counter Initial Value = 0x0000
+    TCNT3 &= 0x0;
+    
+    // == > Timer Interrupt Flag Register:
+    //        OCF01 is cleared when writing the following statement.
+    //        Needs SW as flag is HW controlled, and needs SW toggle
+    TIFR3 |= ( 1 << OCF3A);
+
+    // == > Timer Interrupt Mask Register:
+    //      Enable on the interrupt for the timer
+    TIMSK3 |= (_BV(OCIE3A));
 }
-
 
 
 void mTim0PWM_Init()
@@ -140,5 +127,16 @@ void mTim0PWM_Init()
     OCR0A  = DC_MOTOR_SPEED;
 }
 
-
+// == > 1 us timer for LCD 
+//       f = 16MHz Systtem clock/ 2 ( prescaler) 
+//       T = 1/ f =  125 ns * 8 = 1 us 
+void mTim_DelayUs(double count)
+{
+    uint32_t index = 0;
+    
+    while ( index < (8 * count))
+    {
+        index++;
+    }
+}
 
