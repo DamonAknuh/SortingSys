@@ -40,6 +40,9 @@ const int8_t s_trayTransitionTable[NUMBER_OF_OBJ_TYPES][NUMBER_OF_OBJ_TYPES] =
 // == > Tracks the number of objects of each type. 
 uint8_t s_ObjectTracking[NUMBER_OF_OBJ_TYPES];
 
+// == > Keeps track of current quadrant: persistent across function calls. 
+static uint8_t s_PrevObjectType;
+
 /**********************************************************************
 **  _______ _______ _______ _______ _______ _______
 **  |______    |    |_____|    |    |______ |______
@@ -79,6 +82,9 @@ void InitState()
     s_ObjectTracking[ALUM_TYPE]  =0;
     s_ObjectTracking[WHITE_TYPE] =0;
     s_ObjectTracking[STEEL_TYPE] =0;
+
+    // == > Initialize the starting tray position to be on 0
+    s_PrevObjectType = 0; 
 
     // == > Turn the motor on
     PORTB = DC_MOTOR_CCW;
@@ -155,7 +161,6 @@ void NewObjState()
 ** |    |__| ___] ___  |  |  \ |  |   |   ___ |  | |  | |  \ |__/ 
 **                                                             
 ***********************************************************************/
-
 void PositionTrayState()
 {
     DBG_DISPLAY_LCD(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList() - 1, OBJECTS_CURSOR_SIZE);
@@ -163,9 +168,6 @@ void PositionTrayState()
     pNode_t headNode;
     int8_t  quadrantsToMove;
     uint8_t nextObjectType; 
-
-    // == > Keeps track of current quadrant: persistent across function calls. 
-    static uint8_t prevObjectType;
 
     // == > Dequeue the head node from the LinkedList. 
     DequeueHeadNode(&headNode);
@@ -180,16 +182,16 @@ void PositionTrayState()
         s_ObjectTracking[nextObjectType]++;
 
         // == > if not already on quadrant need to move stepper. 
-        if (nextObjectType != prevObjectType)
+        if (nextObjectType != s_PrevObjectType)
         {
             // == > Grab the tray motor from the constant table above. 
-            quadrantsToMove = s_trayTransitionTable[prevObjectType][nextObjectType];
+            quadrantsToMove = s_trayTransitionTable[s_PrevObjectType][nextObjectType];
 
             // == > Move stepper motor.
             STMotorMove((quadrantsToMove > 0), abs(quadrantsToMove)); 
 
             // == > Update variable for next function call
-            prevObjectType =  nextObjectType; 
+            s_PrevObjectType =  nextObjectType; 
         }
 
         // == > If Ramping state is set then reset the watchdog timer

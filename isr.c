@@ -91,26 +91,25 @@ ISR(INT2_vect)
     }
     else if(g_ADCCounter >=  MIN_ADC_SAMPLES) // == > Sensor not asserted: Object passed. 
     {
-        // == > Set Global bool for object at sensor to be false
-        ADCSRA &= ~_BV(ADIE);  // ==> Enable ADC
-        ADCSRA |=  _BV(ADIF);  // ==> Clear Flag in Interrupt
+        ADCSRA &= ~_BV(ADIE);  // == > Disable the ADC interrupt
+        ADCSRA |=  _BV(ADIF);  // == > Clear Flag in Interrupt
 
         // == > Save the objects minimum ADC result for processing. 
         g_ADCMinResult = g_ADCSample;
+
         // == > Clear Counter
         g_ADCCounter = 0;
 
         // == > ADC Sampling Complete: State = CLASS_STATE
         TRIGGER_STATE(CLASS_STATE);
     } 
-    else    // == > Bad Reading: Not enough samples to classify object. 
+    else  // == > Bad Reading: Not enough samples to classify object. 
     {
+        ADCSRA &= ~_BV(ADIE);  // == > Disable the ADC interrupt
+        ADCSRA |= _BV(ADIF);   // == > Clear Flag in Interrupt
+        
         // == > Clear Counter
         g_ADCCounter = 0;
-
-        // == > Set Global bool for object at sensor to be false
-        ADCSRA &= ~_BV(ADIE);  // ==> Enable ADC
-        ADCSRA |= _BV(ADIF);   // ==> Clear Flag in Interrupt
     }
     
 }
@@ -129,6 +128,7 @@ ISR(INT3_vect)
         // == > Brake the DC motor to VCC
         PORTB =  DC_MOTOR_BRAKE;
 
+        // == > Trigger the POS_TRAY_HARD to turn it on and off. 
         TRIGGER_STATE(POS_TRAY_HARD);
     }
 } 
@@ -164,8 +164,11 @@ ISR(INT5_vect)
 {
     if ((PINE & SYS_RAMP_PIN) == 0x00)
     {
-        TRIGGER_STATE(SYSTEM_RAMP_STATE);
+        // == > Reset the Ramp Down watchdog clock. 
         mTim3_SetWatchDogS(RAMP_DELAY_S);
+
+        // == > Trigger the POS_TRAY_HARD to turn it on and off. 
+        TRIGGER_STATE(SYSTEM_RAMP_STATE);
     }
 }
 

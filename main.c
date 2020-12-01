@@ -111,16 +111,6 @@ int main(void)
             PositionTrayState();
         }
 
-        if (EVAL_STATE(shadowState, CLASS_STATE))
-        {
-            DBG_DISPLAY_STATE_LCD(CLASS_STATE);
-
-            // == > Classifying the Object. Deassert the State
-            PROCESS_STATE(CLASS_STATE);
-
-            ClassifyState();
-        }
-
         if (EVAL_STATE(shadowState, NEW_OBJ_STATE))
         {
             DBG_DISPLAY_STATE_LCD(NEW_OBJ_STATE);
@@ -129,6 +119,16 @@ int main(void)
             PROCESS_STATE(NEW_OBJ_STATE);
 
             NewObjState();
+        }
+
+        if (EVAL_STATE(shadowState, CLASS_STATE))
+        {
+            DBG_DISPLAY_STATE_LCD(CLASS_STATE);
+
+            // == > Classifying the Object. Deassert the State
+            PROCESS_STATE(CLASS_STATE);
+
+            ClassifyState();
         }
 
         if (EVAL_STATE(shadowState, INIT_STATE))

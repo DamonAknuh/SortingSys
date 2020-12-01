@@ -75,7 +75,7 @@ void mADC1_Init(void)
     // == > Config ADC (Analog input ADC1 / PORTF1)
     //          Manual requires ADC to run between 50kHz and 200KHz
     //          Prescale ADC CLK by / 64 to get 125kHZ
-    ADCSRA |= _BV(ADEN) | _BV(ADPS2) | _BV(ADPS1);  // ==> Enable ADC
+    ADCSRA |= _BV(ADEN) | _BV(ADPS2) | _BV(ADPS1);  // ==> Enable ADC and prescale by / 64
     
     // == > ADC Multiplexer Selection Register
     //            ADLAR: Left adjust the ADC result in the register = 0. 

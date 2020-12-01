@@ -65,7 +65,7 @@ inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
 // Large Stepper step table
 const uint8_t s_motorStepTable[] =
 {
-// == > 2 Phase Full Stepper motor operation
+// == > 2-Phase Full Stepper motor operation
     0b110101,   // 0b000101 | 0b110000
     0b110110,   // 0b110000 | 0b000110
     0b101110,   // 0b000110 | 0b101000

@@ -28,11 +28,9 @@
 //        ENABLE_MOTOR_PROFILE == false to have constant delay for stepper
 #define ENABLE_MOTOR_PROFILE    (0)
 
-
 //        ENABLE_DEBUG_BUILD == true to enable debug builds, debug builds output further information to LCD.
 //        ENABLE_DEBUG_BUILD == false to enable production builds for best performance
 #define ENABLE_DEBUG_BUILD      (0)
-
 
 /**********************************************************************
 ** ___  ____ ____ _ _  _ ____ ____
@@ -63,7 +61,7 @@
 #define DC_MOTOR_SPEED          (0x70)
 
 #define DEBOUNCE_DELAY_MS       (50)
-#define RAMP_DELAY_S            (5)
+#define RAMP_DELAY_S            (6)
 
 #define DC_MOTOR_CCW            (0b0111)
 #define DC_MOTOR_BRAKE          (0b1111)
