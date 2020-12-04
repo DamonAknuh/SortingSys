@@ -38,7 +38,7 @@ const int8_t s_trayTransitionTable[NUMBER_OF_OBJ_TYPES][NUMBER_OF_OBJ_TYPES] =
 };
 
 // == > Tracks the number of objects of each type. 
-uint8_t s_ObjectTracking[NUMBER_OF_OBJ_TYPES];
+volatile uint8_t g_ObjectTracking[NUMBER_OF_OBJ_TYPES];
 
 // == > Keeps track of current quadrant: persistent across function calls. 
 static uint8_t s_PrevObjectType;
@@ -76,10 +76,10 @@ void InitState()
     g_HomingFlag        = 0; 
 
     // == > Reset the object tracking information
-    s_ObjectTracking[BLACK_TYPE] =0;
-    s_ObjectTracking[ALUM_TYPE]  =0;
-    s_ObjectTracking[WHITE_TYPE] =0;
-    s_ObjectTracking[STEEL_TYPE] =0;
+    g_ObjectTracking[BLACK_TYPE] =0;
+    g_ObjectTracking[WHITE_TYPE] =0;
+    g_ObjectTracking[STEEL_TYPE] =0;
+        g_ObjectTracking[ALUM_TYPE]  =0;
 
     // == > Initialize the starting tray position to be on 0
     s_PrevObjectType = 0; 
@@ -176,7 +176,7 @@ void PositionTrayState()
         nextObjectType = headNode->data.type;
 
         // == > Increment the tracking for each object when sorting
-        s_ObjectTracking[nextObjectType]++;
+        g_ObjectTracking[nextObjectType]++;
 
         // == > if not already on quadrant need to move stepper. 
         if (nextObjectType != s_PrevObjectType)
@@ -230,10 +230,10 @@ void SystemEndState()
     LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList(), OBJECTS_CURSOR_SIZE);
     
     // == > Display number each type of object on bottom line. 
-    LCDWriteIntXY(ALUM_CURSOR,  CURSOR_BOT_LINE, s_ObjectTracking[ALUM_TYPE],  OBJ_TYPES_CURSOR_SIZE);
-    LCDWriteIntXY(STEEL_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[STEEL_TYPE], OBJ_TYPES_CURSOR_SIZE);
-    LCDWriteIntXY(BLACK_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[BLACK_TYPE], OBJ_TYPES_CURSOR_SIZE);
-    LCDWriteIntXY(WHITE_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[WHITE_TYPE], OBJ_TYPES_CURSOR_SIZE);
+    LCDWriteIntXY(ALUM_CURSOR,  CURSOR_BOT_LINE, g_ObjectTracking[ALUM_TYPE],  OBJ_TYPES_CURSOR_SIZE);
+    LCDWriteIntXY(STEEL_CURSOR, CURSOR_BOT_LINE, g_ObjectTracking[STEEL_TYPE], OBJ_TYPES_CURSOR_SIZE);
+    LCDWriteIntXY(BLACK_CURSOR, CURSOR_BOT_LINE, g_ObjectTracking[BLACK_TYPE], OBJ_TYPES_CURSOR_SIZE);
+    LCDWriteIntXY(WHITE_CURSOR, CURSOR_BOT_LINE, g_ObjectTracking[WHITE_TYPE], OBJ_TYPES_CURSOR_SIZE);
 
     // == > Hold this state untill the state has been deasserted elsewhere. 
     while(EVAL_STATE(g_CurrentState, SYSTEM_PAUSE_STATE));

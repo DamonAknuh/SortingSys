@@ -220,14 +220,32 @@ ISR(TIMER3_COMPA_vect)
     }
     else
     {
-        // == > Completed System Ramp so deassert the ramp state. 
-        PROCESS_STATE(SYSTEM_RAMP_STATE);
+        // == > Turn OFF all other interrupts from firing. 
+        cli();
 
-        // == > Have not processed an item in N seconds proceed to SYSTEM_PAUSE_STATE
-        TRIGGER_STATE(SYSTEM_PAUSE_STATE);
+        // == > Brake the DC Motor
+        PORTB =  DC_MOTOR_BRAKE;
         
-        // == > Interrupt Functionality complete can desassert this timer interrupt
-        TIMSK3 &= ~_BV(OCIE3A);
+        // == > Hold brake for 500 mS
+        mTim1_DelayMs(500);
+
+        // == > Turn off DC Motor 
+        PORTB =  DC_MOTOR_OFF;
+
+        // == > Display PAUSE STATE Statistics
+        LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "-OFF-");
+
+        // == > Display number of items on conveyor. 
+        LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList(), OBJECTS_CURSOR_SIZE);
+        
+        // == > Display number each type of object on bottom line. 
+        LCDWriteIntXY(ALUM_CURSOR,  CURSOR_BOT_LINE, g_ObjectTracking[ALUM_TYPE],  OBJ_TYPES_CURSOR_SIZE);
+        LCDWriteIntXY(STEEL_CURSOR, CURSOR_BOT_LINE, g_ObjectTracking[STEEL_TYPE], OBJ_TYPES_CURSOR_SIZE);
+        LCDWriteIntXY(BLACK_CURSOR, CURSOR_BOT_LINE, g_ObjectTracking[BLACK_TYPE], OBJ_TYPES_CURSOR_SIZE);
+        LCDWriteIntXY(WHITE_CURSOR, CURSOR_BOT_LINE, g_ObjectTracking[WHITE_TYPE], OBJ_TYPES_CURSOR_SIZE);
+
+        // == > Infinite Loop -- never leave the interrupt. 
+        while (true);
     }
 }
 
@@ -240,7 +258,7 @@ ISR(TIMER3_COMPA_vect)
 ISR(BADISR_vect)
 {
     PORTC = 0xFF;
-    
+
     while(true);
 }
 

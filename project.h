@@ -131,6 +131,7 @@
 **
 ***********************************************************************/
 
+extern volatile uint8_t  g_ObjectTracking[NUMBER_OF_OBJ_TYPES];
 extern volatile uint8_t  g_HomingFlag;
 extern volatile uint8_t  g_RefOBjectAtSensor;
 extern volatile uint16_t g_ADCMinResult;
