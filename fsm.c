@@ -62,10 +62,8 @@ void InitState()
 
     // == > Initialize the tray on the starting position. 
     mTray_Init();
-    
-    mTim1_DelayMs(750);
 
-    LCDWriteStringXY(0, CURSOR_TOP_LINE, "L:??|-----|S:???");
+    LCDWriteStringXY(0, CURSOR_TOP_LINE, "L:??|GOING|S:???");
     LCDWriteStringXY(0, CURSOR_BOT_LINE, "??S|??A|??B|??W");
 
     // == > Clear the Queue
@@ -108,7 +106,7 @@ void ClassifyState()
     DequeueCurrentNode(&currentNode);
 
     // == > Check if any nodes too dequeue from LL
-    if (NULL != currentNode)
+    if (currentNode != NULL)
     {
         // == > Classify the objects based on threshold values. increment the tracking. Update LCD
         if (shadowADCResult <= ALUM_TH_MAX)
@@ -129,7 +127,7 @@ void ClassifyState()
         }
         else // == > if not any of these then sort as BLACK. 
         {
-            currentNode->data.type = BLACK_TYPE;
+            currentNode->data.type = ALUM_TYPE;
         }
     }
 }
@@ -140,7 +138,6 @@ void ClassifyState()
 ** | \| |___ |_|_| ___ |__| |__] _| ___ ___]  |  |  |  |  |___ 
 **                                                             
 ***********************************************************************/
-
 void NewObjState()
 {
     DBG_DISPLAY_LCD(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList() + 1, OBJECTS_CURSOR_SIZE);
@@ -218,10 +215,10 @@ void PositionTrayState()
 
 void SystemEndState()
 {
-    // == > Turn Off DC Motor 
+    // == > Brake the DC Motor
     PORTB =  DC_MOTOR_BRAKE;
 
-    // == > Hold brake high for 20 MS
+    // == > Hold brake for 500 MS
     mTim1_DelayMs(500);
 
     // == > Turn off DC Motor 
@@ -233,7 +230,7 @@ void SystemEndState()
     LCDWriteIntXY(OBJECTS_CURSOR, CURSOR_TOP_LINE, SizeOfList(), OBJECTS_CURSOR_SIZE);
     
     // == > Display number each type of object on bottom line. 
-    LCDWriteIntXY(ALUM_CURSOR, CURSOR_BOT_LINE,  s_ObjectTracking[ALUM_TYPE],  OBJ_TYPES_CURSOR_SIZE);
+    LCDWriteIntXY(ALUM_CURSOR,  CURSOR_BOT_LINE, s_ObjectTracking[ALUM_TYPE],  OBJ_TYPES_CURSOR_SIZE);
     LCDWriteIntXY(STEEL_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[STEEL_TYPE], OBJ_TYPES_CURSOR_SIZE);
     LCDWriteIntXY(BLACK_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[BLACK_TYPE], OBJ_TYPES_CURSOR_SIZE);
     LCDWriteIntXY(WHITE_CURSOR, CURSOR_BOT_LINE, s_ObjectTracking[WHITE_TYPE], OBJ_TYPES_CURSOR_SIZE);
@@ -242,7 +239,8 @@ void SystemEndState()
     while(EVAL_STATE(g_CurrentState, SYSTEM_PAUSE_STATE));
 
     // == > Reset LCD display
-    LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "-----");
+    LCDWriteStringXY(0, CURSOR_TOP_LINE, "L:??|GOING|S:???");
+    LCDWriteStringXY(0, CURSOR_BOT_LINE, "??S|??A|??B|??W");
 
     // == > Turn the motor back on.
     PORTB = DC_MOTOR_CCW;

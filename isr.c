@@ -16,7 +16,6 @@
 #include "linkedlist_api.h"
 #include "fsm_api.h"
 
-
 /**********************************************************************
 ** ____ _    ____ ___  ____ _    ____
 ** | __ |    |  | |__] |__| |    [__
@@ -81,7 +80,7 @@ ISR(INT2_vect)
     if (((PIND & OR_SENSOR_PIN) == OR_SENSOR_PIN) && !g_ADCCounter) // == > if sensor triggered : Object sighted, and not currently processing. 
     {
         // == > Enable the ADC interrupt
-        ADCSRA |= _BV(ADIE);  // ==> Enable ADC
+        ADCSRA |= _BV(ADIE);
         
         // == > Reset the ADC Sampling variable
         g_ADCSample = 0xFFFF;
@@ -91,8 +90,10 @@ ISR(INT2_vect)
     }
     else if(g_ADCCounter >=  MIN_ADC_SAMPLES) // == > Sensor not asserted: Object passed. 
     {
-        ADCSRA &= ~_BV(ADIE);  // == > Disable the ADC interrupt
-        ADCSRA |=  _BV(ADIF);  // == > Clear Flag in Interrupt
+        // == > Disable the ADC interrupt
+        ADCSRA &= ~_BV(ADIE); 
+        // == > Clear Flag in Interrupt
+        ADCSRA |=  _BV(ADIF);  
 
         // == > Save the objects minimum ADC result for processing. 
         g_ADCMinResult = g_ADCSample;
@@ -105,8 +106,10 @@ ISR(INT2_vect)
     } 
     else  // == > Bad Reading: Not enough samples to classify object. 
     {
-        ADCSRA &= ~_BV(ADIE);  // == > Disable the ADC interrupt
-        ADCSRA |= _BV(ADIF);   // == > Clear Flag in Interrupt
+        // == > Disable the ADC interrupt
+        ADCSRA &= ~_BV(ADIE); 
+        // == > Clear Flag in Interrupt
+        ADCSRA |=  _BV(ADIF);  
         
         // == > Clear Counter
         g_ADCCounter = 0;
@@ -143,6 +146,7 @@ ISR(INT3_vect)
 ISR(INT4_vect)
 {
     mTim1_DelayMs(DEBOUNCE_DELAY_MS);
+
     if ((PINE & SYS_PAUSE_PIN) == 0x00)
     {
         // == > Brake the DC motor to VCC
@@ -189,7 +193,8 @@ ISR(ADC_vect)
     uint16_t result = (ADCHigh << 8) | (ADCLow); 
     
     // == > Save the current minimum value of the result
-    g_ADCSample = MIN(g_ADCSample, result); // g_ADCSample = 0xFFF initally 
+    //      g_ADCSample = 0xFFF initally 
+    g_ADCSample = MIN(g_ADCSample, result); 
     
     // == > Restarts ADC Conversion 
     ADCSRA |= _BV(ADSC);
@@ -211,15 +216,15 @@ ISR(TIMER3_COMPA_vect)
     {
         // == > Increment Counter to keep track of number of seconds.
         //      Each time this interrupt fires, another second has passed.  
-        g_Tim3CounterS++;  
+        g_Tim3CounterS++;
     }
     else
     {
-        // == > Have not processed an item in N seconds proceed to SYSTEM_PAUSE_STATE
-        TRIGGER_STATE(SYSTEM_PAUSE_STATE);
-
         // == > Completed System Ramp so deassert the ramp state. 
         PROCESS_STATE(SYSTEM_RAMP_STATE);
+
+        // == > Have not processed an item in N seconds proceed to SYSTEM_PAUSE_STATE
+        TRIGGER_STATE(SYSTEM_PAUSE_STATE);
         
         // == > Interrupt Functionality complete can desassert this timer interrupt
         TIMSK3 &= ~_BV(OCIE3A);
@@ -235,6 +240,7 @@ ISR(TIMER3_COMPA_vect)
 ISR(BADISR_vect)
 {
     PORTC = 0xFF;
+    
     while(true);
 }
 

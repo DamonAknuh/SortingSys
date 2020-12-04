@@ -24,7 +24,6 @@
 
 void mGPIO_Init(void)
 {
-
     // ========= SET PORT DIRECTIONS ============================
     // ==> Set PORT C to be output port.
     DDRC = 0xFF;
@@ -69,9 +68,6 @@ void mGPIO_Init(void)
 
 void mADC1_Init(void)
 {
-    // Todo: ramp down ADC clock. 
-    g_RefOBjectAtSensor = 0; 
-    
     // == > Config ADC (Analog input ADC1 / PORTF1)
     //          Manual requires ADC to run between 50kHz and 200KHz
     //          Prescale ADC CLK by / 64 to get 125kHZ
@@ -84,13 +80,13 @@ void mADC1_Init(void)
     ADMUX  |= _BV(REFS0) | _BV(MUX0);
 
     // == > Perform First ADC conversion. This will take 25 cycles, and initializes the
-    //			ADC for the rest of the program.
+    //      ADC for the rest ofs the program.
     ADCSRA |= _BV(ADSC);
     
-	// == > Wait for first ADC conversion to completes
+    // == > Wait for first ADC conversion to completes
     while ((ADCSRA & _BV(ADIF)) == 0x00);
-	
-    ADCSRA |= _BV(ADIF);	// ==> Clear Flag in Interrupt
+    // ==> Clear Flag in Interrupt
+    ADCSRA |= _BV(ADIF);    
 }
 
 

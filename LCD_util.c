@@ -165,9 +165,9 @@ void mLCD_Init(uint8_t style)
         
     //Set IO Ports
     LCD_DATA_DDR    |= (0x0F);
-    LCD_E_DDR       |= (1<<LCD_E_POS);
-    LCD_RS_DDR      |= (1<<LCD_RS_POS);
-    LCD_RW_DDR      |= (1<<LCD_RW_POS);
+    LCD_E_DDR       |= (1 << LCD_E_POS);
+    LCD_RS_DDR      |= (1 << LCD_RS_POS);
+    LCD_RW_DDR      |= (1 << LCD_RW_POS);
 
     LCD_DATA_PORT   &= 0XF0;
     CLEAR_E();

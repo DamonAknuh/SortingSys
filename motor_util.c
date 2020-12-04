@@ -55,7 +55,7 @@ inline void STMotorDelayProfile(uint32_t stepNum, uint8_t quadrants)
 #elif !ENABLE_SMALL_STEPPER 
 
  #define MOTOR_START_DELAY_MS   (20)
- #define MOTOR_END_DELAY_MS     (4)
+ #define MOTOR_END_DELAY_MS     (5)
  #define MOTOR_STEPS_REV        (200)
  #define MOTOR_QUARTER_STEPS    (MOTOR_STEPS_REV / 4)
  #define MOTOR_RAMP_STEPS       (15)
@@ -76,8 +76,8 @@ const uint8_t s_motorStepTable[] =
 // == > Store the information for the ST motor profiler
 const uint8_t s_profilerStepLimits[2][3] = 
 {
-    {16,  45,   43},    // PROFILE 1 for moving only 1 quadrant
-    {16,  95,   93}     // PROFILE 2 for moving 2 quadrants
+    {15,  45,   43},    // PROFILE 1 for moving only 1 quadrant
+    {15,  95,   93}     // PROFILE 2 for moving 2 quadrants
 };
 
 inline void STMotorDelayProfile(uint32_t stepNum, uint8_t profile)
@@ -157,15 +157,13 @@ void mTray_Init(void)
     // == > Ensure the interrupt for the HE sensor is ON. 
     EIMSK |= _BV(INT1);
 
-    // == > Display to LCD
-    LCDWriteStringXY(0, 0,"Homing...");
-
     s_CurrentMotorStep++;
 
     for (i = 0; !g_HomingFlag; i++)
     {
         // the steps in the step table (1,2,3,4,1,2...) to turn motor CW
         PORTA = s_motorStepTable[(s_CurrentMotorStep + i) % SIZEOF_MOTOR_TABLE];
+
         // == > For Homing stage just use constant delay
         mTim1_DelayMs(MOTOR_START_DELAY_MS);
     }
@@ -176,6 +174,7 @@ void mTray_Init(void)
     EIMSK &= ~_BV(INT1);
 
     // == > Display to LCD
-    LCDWriteStringXY(0, 0, "Homed!");
+    LCDWriteStringXY(ADC_RST_CURSOR, CURSOR_TOP_LINE, "HOMED");
+    mTim1_DelayMs(750);
 }
 

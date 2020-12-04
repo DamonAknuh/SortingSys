@@ -76,6 +76,8 @@ int main(void)
 
     // == > Initailize the LCD for the project
     mLCD_Init(LS_BLINK | LS_ULINE);
+    LCDWriteStringXY(0, CURSOR_TOP_LINE, "L:??|HELLO|S:???");
+    LCDWriteStringXY(0, CURSOR_BOT_LINE, "??S|??A|??B|??W");
 
     // == > Clear the screen
     LCDClear();
@@ -101,21 +103,11 @@ int main(void)
             SystemEndState();
         }
 
-        if (EVAL_STATE(shadowState, POS_TRAY_HARD))
-        {
-            DBG_DISPLAY_STATE_LCD(POS_TRAY_HARD);
-
-            // == > Positioning the object. Deassert the State
-            PROCESS_STATE(POS_TRAY_HARD);
-
-            PositionTrayState();
-        }
-
         if (EVAL_STATE(shadowState, NEW_OBJ_STATE))
         {
             DBG_DISPLAY_STATE_LCD(NEW_OBJ_STATE);
 
-            // == > Processed new object deassert object
+            // == > Processed new object deassert the State
             PROCESS_STATE(NEW_OBJ_STATE);
 
             NewObjState();
@@ -131,11 +123,21 @@ int main(void)
             ClassifyState();
         }
 
+        if (EVAL_STATE(shadowState, POS_TRAY_HARD))
+        {
+            DBG_DISPLAY_STATE_LCD(POS_TRAY_HARD);
+
+            // == > Positioning the object. Deassert the State
+            PROCESS_STATE(POS_TRAY_HARD);
+
+            PositionTrayState();
+        }
+
         if (EVAL_STATE(shadowState, INIT_STATE))
         {
             DBG_DISPLAY_STATE_LCD(INIT_STATE);
 
-            // == > Initialized System deassert object
+            // == > Initialized System deassert the State
             PROCESS_STATE(INIT_STATE);
 
             InitState();
