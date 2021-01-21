@@ -1,5 +1,5 @@
 /*
- * linkedlist_api.h
+ * LCD_api.h
  *
  * Created: 2020-11-20 10:14:24 AM
  *  Author: matt

@@ -101,8 +101,8 @@ ISR(INT2_vect)
         // == > Clear Counter
         g_ADCCounter = 0;
 
-        // == > ADC Sampling Complete: State = CLASS_STATE
-        TRIGGER_STATE(CLASS_STATE);
+        // == > ADC Sampling Complete: State = OBJ_ID
+        TRIGGER_STATE(OBJ_ID);
     } 
     else  // == > Bad Reading: Not enough samples to classify object. 
     {
@@ -131,8 +131,8 @@ ISR(INT3_vect)
         // == > Brake the DC motor to VCC
         PORTB =  DC_MOTOR_BRAKE;
 
-        // == > Trigger the POS_TRAY_HARD to turn it on and off. 
-        TRIGGER_STATE(POS_TRAY_HARD);
+        // == > Trigger the OBJ_TRAY to turn it on and off. 
+        TRIGGER_STATE(OBJ_TRAY);
     }
 } 
 
@@ -171,7 +171,7 @@ ISR(INT5_vect)
         // == > Reset the Ramp Down watchdog clock. 
         mTim3_SetWatchDogS(RAMP_DELAY_S);
 
-        // == > Trigger the POS_TRAY_HARD to turn it on and off. 
+        // == > Trigger the SYSTEM_RAMP_STATE to turn it on and off. 
         TRIGGER_STATE(SYSTEM_RAMP_STATE);
     }
 }

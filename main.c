@@ -113,22 +113,22 @@ int main(void)
             NewObjState();
         }
 
-        if (EVAL_STATE(shadowState, CLASS_STATE))
+        if (EVAL_STATE(shadowState, OBJ_ID))
         {
-            DBG_DISPLAY_STATE_LCD(CLASS_STATE);
+            DBG_DISPLAY_STATE_LCD(OBJ_ID);
 
             // == > Classifying the Object. Deassert the State
-            PROCESS_STATE(CLASS_STATE);
+            PROCESS_STATE(OBJ_ID);
 
             ClassifyState();
         }
 
-        if (EVAL_STATE(shadowState, POS_TRAY_HARD))
+        if (EVAL_STATE(shadowState, OBJ_TRAY))
         {
-            DBG_DISPLAY_STATE_LCD(POS_TRAY_HARD);
+            DBG_DISPLAY_STATE_LCD(OBJ_TRAY);
 
             // == > Positioning the object. Deassert the State
-            PROCESS_STATE(POS_TRAY_HARD);
+            PROCESS_STATE(OBJ_TRAY);
 
             PositionTrayState();
         }

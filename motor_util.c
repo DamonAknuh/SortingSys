@@ -30,8 +30,8 @@ volatile uint8_t  g_HomingFlag;
 
 #if ENABLE_SMALL_STEPPER
 
- #define MOTOR_START_DELAY_MS    (35)
- #define MOTOR_END_DELAY_MS      (20)
+ #define MOTOR_START_DELAY_MS   (35)
+ #define MOTOR_END_DELAY_MS     (20)
  #define MOTOR_STEPS_REV        (2048)
  #define MOTOR_QUARTER_STEPS    (MOTOR_STEPS_REV / 4)
  #define MOTOR_RAMP_STEPS       (MOTOR_QUARTER_STEPS / 3)
@@ -69,7 +69,7 @@ const uint8_t s_motorStepTable[] =
     0b110101,   // 0b000101 | 0b110000
     0b110110,   // 0b110000 | 0b000110
     0b101110,   // 0b000110 | 0b101000
-    0b101101,   // 0b101000 | 0b000101
+    0b101101    // 0b101000 | 0b000101
 };
 
 

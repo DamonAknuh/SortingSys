@@ -2,7 +2,7 @@
  * fsm.c
  *
  * Created: 2020-11-20 11:27:42 AM
- *  Author: hunka
+ *  Author: hunka 
  */ 
 
 #include <stdlib.h> // the header of the general-purpose standard library of C programming language
@@ -79,7 +79,7 @@ void InitState()
     g_ObjectTracking[BLACK_TYPE] =0;
     g_ObjectTracking[WHITE_TYPE] =0;
     g_ObjectTracking[STEEL_TYPE] =0;
-        g_ObjectTracking[ALUM_TYPE]  =0;
+    g_ObjectTracking[ALUM_TYPE]  =0;
 
     // == > Initialize the starting tray position to be on 0
     s_PrevObjectType = 0; 

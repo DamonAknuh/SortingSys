@@ -30,7 +30,7 @@
 
 //        ENABLE_DEBUG_BUILD == true to enable debug builds, debug builds output further information to LCD.
 //        ENABLE_DEBUG_BUILD == false to enable production builds for best performance
-#define ENABLE_DEBUG_BUILD      (0)
+#define ENABLE_DEBUG_BUILD      (1)
 
 /**********************************************************************
 ** ___  ____ ____ _ _  _ ____ ____
@@ -54,8 +54,10 @@
     }                                                                           \
     while(0)
 #else
+
  #define DBG_DISPLAY_LCD(X,Y,VAL,SIZE)
- #define DBG_DISPLAY_STATE_LCD(STATE) 
+ #define DBG_DISPLAY_STATE_LCD(STATE)
+
 #endif // ENABLE_DEBUG_BUILD
 
 #define DC_MOTOR_SPEED          (0x70)
